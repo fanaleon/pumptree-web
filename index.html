@@ -834,7 +834,7 @@
 </section>
 
 <section class="dash-teaser-section">
-  <a class="dash-teaser" href="emisiones.html" target="_blank" rel="noopener">
+  <a class="dash-teaser" href="emisiones.html">
     <div class="dash-teaser-icon">
       <svg viewBox="0 0 24 24"><path d="M4 19h16M7 19V9m5 10V5m5 14v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
@@ -993,7 +993,13 @@
     if(!amountEl) return;
 
     const TREASURY_WALLET = 'GDkZei9e8CuoczpLUcCqTb2UqUymRgGFhhDx5Vwm5tU4';
-    const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
+    // RPCs públicos pensados para consumirse directo desde el navegador (sin API key).
+    // Se prueban en orden: si el primero falla (caído o bloquea el origen), pasa al siguiente.
+    const SOLANA_RPCS = [
+      'https://solana-rpc.publicnode.com',
+      'https://rpc.solanatracker.io/public',
+      'https://api.mainnet-beta.solana.com'
+    ];
 
     async function loadUsd(sol){
       try{
@@ -1009,22 +1015,31 @@
       }
     }
 
+    async function tryRpc(url){
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc:'2.0', id:1, method:'getBalance', params:[TREASURY_WALLET] })
+      });
+      const data = await res.json();
+      if(data && data.result && typeof data.result.value === 'number'){
+        return data.result.value / 1e9;
+      }
+      throw new Error('respuesta inesperada del RPC');
+    }
+
     async function loadBalance(){
-      try{
-        const res = await fetch(SOLANA_RPC, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jsonrpc:'2.0', id:1, method:'getBalance', params:[TREASURY_WALLET] })
-        });
-        const data = await res.json();
-        if(data && data.result && typeof data.result.value === 'number'){
-          const sol = data.result.value / 1e9;
+      for(const url of SOLANA_RPCS){
+        try{
+          const sol = await tryRpc(url);
           amountEl.textContent = sol.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:4}) + ' SOL';
           loadUsd(sol);
+          return; // listo, no hace falta probar los siguientes
+        } catch(e){
+          // este RPC falló (caído, bloqueó el origen, etc.) — probamos el siguiente de la lista
         }
-      } catch(e){
-        // sin conexión o RPC caído: se queda el guion default, no rompe la página
       }
+      // ningún RPC respondió: se queda el guion default, no rompe la página
     }
 
     loadBalance();
