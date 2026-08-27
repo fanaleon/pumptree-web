@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>$PMPT | PumpTree — De pozo a bosque</title>
+<title>PumpTree Vaca Muerta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;0,18..144,600;1,18..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -13,9 +13,11 @@
     --bone:#ece3d2;
     --bone-dim:#c9bda6;
     --clay:#9c5a2e;
-    --flare:#e8703a;
+    --flare:#c6ff2e;
     --sage:#6f8f6a;
     --sage-dim:#3c4f39;
+    --orange:#e8703a;
+    --danger:#d6402a;
     --line: rgba(236,227,210,0.14);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -25,10 +27,55 @@
     color:var(--bone);
     font-family:'Literata', serif;
     overflow-x:hidden;
+    position:relative;
   }
   ::selection{background:var(--flare); color:var(--oil);}
   h1,h2,h3,.display{font-family:'Archivo Black', sans-serif; text-transform:uppercase; letter-spacing:-0.01em;}
   .mono{font-family:'JetBrains Mono', monospace;}
+
+  /* ---------- fondo: grilla + glow, fijo detrás de todo ---------- */
+  .bg-layer{
+    position:fixed; inset:0; z-index:-3; pointer-events:none;
+    background-color:var(--oil);
+    background-image:
+      linear-gradient(rgba(198,255,46,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(198,255,46,0.05) 1px, transparent 1px);
+    background-size:46px 46px;
+  }
+  .bg-layer::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 60% 40% at 50% 0%, rgba(198,255,46,0.10), transparent 70%);
+    animation: glowPulse 8s ease-in-out infinite;
+  }
+  @keyframes glowPulse{
+    0%,100%{ opacity:0.7; }
+    50%{ opacity:1; }
+  }
+
+  /* ---------- pumpjack decorativo de fondo, sutil ---------- */
+  .bg-pumpjack{
+    position:fixed; right:-4vw; bottom:-2vh; width:min(46vw, 520px);
+    z-index:-2; pointer-events:none; opacity:0.06;
+  }
+  .bg-pumpjack svg{ width:100%; height:auto; display:block; }
+  .bg-pumpjack .beam{
+    transform-origin:170px 90px;
+    animation: pumpjackRock 4.5s ease-in-out infinite;
+  }
+  .bg-pumpjack .head{
+    animation: pumpjackHead 4.5s ease-in-out infinite;
+  }
+  @keyframes pumpjackRock{
+    0%,100%{ transform:rotate(-6deg); }
+    50%{ transform:rotate(6deg); }
+  }
+  @keyframes pumpjackHead{
+    0%,100%{ transform:translateY(-6px); }
+    50%{ transform:translateY(6px); }
+  }
+  @media (max-width: 800px){
+    .bg-pumpjack{ width:70vw; opacity:0.05; }
+  }
 
   a{color:inherit;}
 
@@ -53,6 +100,85 @@
   .marquee span b{color:var(--flare);}
   @keyframes scroll{ 0%{transform:translateX(0);} 100%{transform:translateX(-100%);} }
 
+  /* ---------- socios ---------- */
+  .partners-section{ padding:clamp(28px,4vw,40px) 0; }
+  .partners-section .section-head{ padding:0 6vw; }
+  .partners-track-wrap{
+    overflow:hidden; width:100%;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .partners-track{
+    display:flex; width:max-content;
+    animation:partnersScroll 30s linear infinite;
+  }
+  .partners-track:hover{ animation-play-state:paused; }
+  @keyframes partnersScroll{ 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+  .partner-slot{
+    flex-shrink:0; display:flex; align-items:center; gap:10px;
+    border:1px dashed var(--line); border-radius:6px;
+    padding:16px 24px; margin-right:14px;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--bone-dim);
+    white-space:nowrap; opacity:.75;
+  }
+  .partner-slot .plus{
+    width:20px; height:20px; border-radius:50%; border:1px dashed var(--sage);
+    display:flex; align-items:center; justify-content:center; color:var(--sage);
+    font-size:13px; flex-shrink:0;
+  }
+  .partners-cta{
+    text-align:center; margin-top:20px; padding:0 6vw;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--bone-dim);
+  }
+  .partners-cta a{ color:var(--flare); text-decoration:underline; text-underline-offset:2px; }
+
+  /* ---------- intro: árbol minimalista que crece con las mismas hojas de los botones ---------- */
+  #intro-screen{
+    position:fixed; inset:0; z-index:99999; background:var(--oil);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6vh; overflow:hidden; transition:opacity .8s ease;
+  }
+  #intro-screen.hide{ opacity:0; pointer-events:none; }
+  .intro-tree-scene{
+    position:relative; width:min(52vw, 220px); aspect-ratio:1/1;
+  }
+  .intro-trunk-svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .intro-trunk{ stroke:var(--bone-dim); stroke-width:3; fill:none; stroke-linecap:round; opacity:0.55; }
+  .intro-branch{ stroke:var(--bone-dim); stroke-width:2; fill:none; stroke-linecap:round; opacity:0.4; }
+  .intro-tree-scene .leaf{
+    position:absolute; z-index:auto; animation:none;
+    opacity:0; transform:translate(-50%,-50%) scale(0) rotate(var(--leaf-rot, 0deg));
+    transition:opacity .45s ease, transform .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  .intro-tree-scene .leaf.show{ opacity:1; transform:translate(-50%,-50%) scale(1) rotate(var(--leaf-rot, 0deg)); }
+  .intro-bottom{
+    position:relative; z-index:2; width:100%; max-width:220px;
+    padding:0 24px; text-align:center;
+  }
+  .intro-loadbar{
+    width:100%; height:3px; background:rgba(236,227,210,0.1);
+    border-radius:3px; overflow:hidden; margin-bottom:10px;
+  }
+  .intro-loadfill{
+    height:100%; width:0%; border-radius:3px;
+    background:var(--flare);
+    transition:width .15s linear;
+  }
+  .intro-loadlabel{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.18em;
+    color:var(--bone-dim);
+  }
+  .intro-skip{
+    position:absolute; top:22px; right:22px; z-index:3;
+    background:transparent; border:1px solid var(--line); color:var(--bone-dim);
+    font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px 14px;
+    border-radius:2px; cursor:pointer; letter-spacing:.1em; transition:all .2s;
+  }
+  .intro-skip:hover{ color:var(--flare); border-color:var(--flare); }
+  @media (prefers-reduced-motion: reduce){
+    .intro-tree-scene .leaf{ transition:opacity .3s ease; transform:none !important; }
+  }
+
   /* ---------- nav ---------- */
   nav{
     display:flex; align-items:center; justify-content:space-between;
@@ -60,13 +186,25 @@
   }
   .logo{display:flex; align-items:center; gap:10px; font-size:18px;}
   .logo img{
-    width:38px; height:38px; border-radius:50%; object-fit:cover;
+    width:57px; height:57px; border-radius:50%; object-fit:cover;
     border:1px solid var(--line);
+    animation: logoGlow 3s ease-in-out infinite;
+  }
+  @keyframes logoGlow{
+    0%,100%{ box-shadow:0 0 0px rgba(198,255,46,0); }
+    50%{ box-shadow:0 0 15px rgba(198,255,46,0.55); }
   }
   .logo .dot{width:9px; height:9px; border-radius:50%; background:var(--flare);}
-  nav ul{display:flex; gap:28px; list-style:none; font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.05em;}
-  nav ul a{text-decoration:none; color:var(--bone-dim); transition:color .2s;}
-  nav ul a:hover{color:var(--flare);}
+  .nav-socials{ display:flex; gap:10px; list-style:none; }
+  .social-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--orange); border-radius:20px; padding:8px 14px;
+    text-decoration:none; color:var(--orange);
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.04em;
+    transition:all .2s; background:var(--oil-2);
+  }
+  .social-btn svg{ width:14px; height:14px; fill:currentColor; flex-shrink:0; }
+  .social-btn:hover{ color:var(--flare); border-color:var(--flare); box-shadow:0 0 12px rgba(198,255,46,0.15); }
   .buy-btn{
     background:var(--flare); color:var(--oil); font-family:'JetBrains Mono',monospace;
     font-weight:700; font-size:13px; letter-spacing:.05em; padding:10px 18px;
@@ -77,7 +215,7 @@
 
   /* ---------- hero ---------- */
   .hero{
-    padding:8vh 6vw 0;
+    padding:clamp(32px, 6vw, 56px) 6vw 0;
     text-align:center;
     position:relative;
   }
@@ -86,18 +224,114 @@
     color:var(--sage); margin-bottom:22px;
   }
   .hero h1{
-    font-size:clamp(42px, 9vw, 108px);
-    line-height:0.92;
+    font-size:clamp(32px, 6.4vw, 72px);
+    line-height:1.05;
     color:var(--bone);
+    max-width:800px; margin:0 auto;
   }
   .hero h1 .flare{color:var(--flare);}
+  .hero h1 .pumpfun-pill{
+    height:0.85em; width:auto; vertical-align:-0.12em; margin:0 0.06em; display:inline-block;
+    transform-origin:50% 50%;
+    animation:pillSway 2.8s ease-in-out infinite;
+  }
+  @keyframes pillSway{
+    0%,100%{ transform:rotate(-9deg); }
+    50%{ transform:rotate(9deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero h1 .pumpfun-pill{ animation:none; }
+  }
   .hero p.sub{
     max-width:560px; margin:26px auto 0; font-size:18px; color:var(--bone-dim);
     line-height:1.5;
   }
-  .hero-ctas{
-    display:flex; gap:16px; justify-content:center; margin-top:38px; flex-wrap:wrap;
+  /* ---------- dashboard teaser ---------- */
+  .dash-teaser-section{ padding:clamp(8px,1.5vw,16px) 6vw clamp(20px,3vw,32px); }
+  .dash-teaser{
+    display:flex; align-items:center; gap:22px; max-width:760px; margin:0 auto;
+    padding:24px 28px; border:1px solid var(--line); border-radius:8px;
+    background:var(--oil-2); text-decoration:none; position:relative; overflow:hidden;
+    transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
   }
+  .dash-teaser::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--flare), transparent); opacity:.5;
+  }
+  .dash-teaser:hover{
+    border-color:var(--flare); transform:translateY(-3px);
+    box-shadow:0 10px 28px rgba(0,0,0,0.35), 0 0 18px rgba(198,255,46,0.12);
+  }
+  .dash-teaser-icon{
+    flex-shrink:0; width:46px; height:46px; border-radius:50%;
+    background:rgba(198,255,46,0.08); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; color:var(--flare);
+  }
+  .dash-teaser-icon svg{ width:20px; height:20px; }
+  .dash-teaser-text{ flex:1; min-width:0; }
+  .dash-teaser-eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.18em;
+    color:var(--sage); display:block; margin-bottom:6px;
+  }
+  .dash-teaser-text h3{
+    font-family:'Archivo Black',sans-serif; font-size:16px; color:var(--bone); margin-bottom:6px;
+  }
+  .dash-teaser-text p{ color:var(--bone-dim); font-size:13.5px; line-height:1.5; }
+  .dash-teaser-cta{
+    flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:12px;
+    color:var(--flare); white-space:nowrap; display:flex; align-items:center; gap:6px;
+  }
+  .dash-teaser-cta .arrow{ transition:transform .25s ease; }
+  .dash-teaser:hover .dash-teaser-cta .arrow{ transform:translateX(4px); }
+  @media (max-width:640px){
+    .dash-teaser{ flex-direction:column; text-align:center; padding:24px 20px; }
+    .dash-teaser-cta{ margin-top:4px; }
+  }
+
+  .hero-ctas-section{ padding:clamp(8px,1.5vw,16px) 6vw clamp(20px,3vw,32px); }
+
+  /* ---------- live treasury ---------- */
+  .live-treasury{
+    max-width:380px; margin:0 auto 28px; padding:22px 26px; text-align:center;
+    border:1px solid var(--line); border-radius:8px; background:var(--oil-2);
+    position:relative; overflow:hidden;
+  }
+  .live-treasury::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--flare), transparent); opacity:.6;
+  }
+  .live-treasury-head{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.15em; color:var(--bone-dim);
+  }
+  .live-dot{
+    width:7px; height:7px; border-radius:50%; background:var(--flare);
+    animation:liveDotPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes liveDotPulse{
+    0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(198,255,46,0.5); }
+    50%{ opacity:.35; box-shadow:0 0 0 6px rgba(198,255,46,0); }
+  }
+  .live-amount{
+    font-family:'Archivo Black',sans-serif; font-size:clamp(30px,5vw,42px);
+    color:var(--bone); margin:12px 0 4px; letter-spacing:.02em;
+  }
+  .live-amount-usd{
+    font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--sage);
+    margin-bottom:8px; min-height:16px;
+  }
+  .live-sub{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--bone-dim);
+    opacity:.65; line-height:1.5;
+  }
+  .live-explorer-link{
+    display:inline-block; margin-top:10px; text-decoration:none;
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.03em;
+    color:var(--flare); border-bottom:1px solid rgba(198,255,46,0.3);
+    transition:border-color .2s, opacity .2s;
+  }
+  .live-explorer-link:hover{ border-color:var(--flare); opacity:.85; }
+
   .btn-primary{
     background:var(--flare); color:var(--oil); padding:15px 30px; border-radius:2px;
     text-decoration:none; font-family:'JetBrains Mono',monospace; font-weight:700;
@@ -109,27 +343,69 @@
     border:1px solid var(--line); color:var(--bone-dim);
   }
 
-  /* ---------- signature horizon: pozo -> bosque ---------- */
-  .horizon-wrap{
-    margin-top:8vh; position:relative; height:180px; width:100%;
-    background:linear-gradient(180deg, transparent, rgba(0,0,0,0.25));
+  /* ---------- eco-divider: separador sutil, pozo -> árbol ---------- */
+  .eco-divider{
+    display:flex; align-items:center; max-width:760px; margin:clamp(24px,4vw,40px) auto; padding:0 8vw;
+    opacity:0.85;
   }
-  .horizon-label{
-    position:absolute; top:10px; width:100%; text-align:center;
-    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.2em;
-    color:var(--bone-dim); z-index:2;
+  .eco-pump-wrap{ flex-shrink:0; width:56px; height:56px; }
+  .eco-pump-svg{ width:100%; height:100%; display:block; }
+  .eco-beam{ transform-origin:26px 34px; animation:ecoPumpBeam 2.6s ease-in-out infinite; }
+  .eco-head{ animation:ecoPumpHead 2.6s ease-in-out infinite; }
+  @keyframes ecoPumpBeam{ 0%,100%{ transform:rotate(-9deg); } 50%{ transform:rotate(9deg); } }
+  @keyframes ecoPumpHead{ 0%,100%{ transform:translateY(-3px); } 50%{ transform:translateY(3px); } }
+
+  .eco-line-wrap{ position:relative; flex:1; height:2px; margin:0 16px; }
+  .eco-line{
+    position:absolute; inset:0; border-radius:2px;
+    background:linear-gradient(90deg, var(--orange), var(--flare));
+    opacity:0.5;
   }
-  svg.horizon{ display:block; width:100%; height:100%; }
+  .eco-pulse{
+    position:absolute; top:50%; left:0; width:6px; height:6px; margin-top:-3px;
+    border-radius:50%; background:var(--flare); box-shadow:0 0 7px var(--flare);
+    animation:ecoPulseMove 2.6s linear infinite;
+  }
+  @keyframes ecoPulseMove{
+    0%{ left:0%; opacity:0; }
+    12%{ opacity:1; }
+    88%{ opacity:1; }
+    100%{ left:100%; opacity:0; }
+  }
+
+  .eco-tree-wrap{ flex-shrink:0; width:56px; height:56px; position:relative; }
+  .eco-trunk-svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .eco-trunk{ stroke:var(--bone-dim); stroke-width:2.5; fill:none; stroke-linecap:round; opacity:0.5; }
+  .eco-branch{ stroke:var(--bone-dim); stroke-width:1.5; fill:none; stroke-linecap:round; opacity:0.35; }
+  .eco-tree-wrap .leaf{
+    position:absolute; width:9px; height:12px; z-index:auto;
+    animation:ecoLeafGrow 5.2s ease-in-out infinite;
+  }
+  @keyframes ecoLeafGrow{
+    0%, 100%{ opacity:0; transform:translate(-50%,-50%) scale(0) rotate(var(--leaf-rot,0deg)); }
+    35%, 65%{ opacity:1; transform:translate(-50%,-50%) scale(1) rotate(var(--leaf-rot,0deg)); }
+  }
+  @media (max-width: 640px){
+    .eco-divider{ padding:0 6vw; }
+    .eco-pump-wrap, .eco-tree-wrap{ width:42px; height:42px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .eco-beam, .eco-head, .eco-pulse, .eco-tree-wrap .leaf{ animation:none; opacity:0.6; }
+  }
 
   /* ---------- CA box ---------- */
-  .ca-section{ padding:6vh 6vw; display:flex; justify-content:center; }
+  .ca-section{ padding:clamp(28px,4vw,40px) 6vw; display:flex; justify-content:center; }
   .ca-box{
     border:1px solid var(--line); background:var(--oil-2);
     padding:20px 26px; border-radius:4px; display:flex; align-items:center; gap:18px;
     max-width:640px; width:100%; flex-wrap:wrap; justify-content:space-between;
   }
+  .ca-box-info{ min-width:0; flex:1 1 260px; width:100%; }
   .ca-box .label{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sage); letter-spacing:.15em; margin-bottom:6px;}
-  .ca-box .addr{font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--bone-dim);}
+  .ca-box .addr{
+    font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--bone-dim);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;
+  }
   .copy-btn{
     background:transparent; border:1px solid var(--flare); color:var(--flare);
     font-family:'JetBrains Mono',monospace; font-size:12px; padding:9px 16px;
@@ -138,37 +414,59 @@
   .copy-btn:hover{background:var(--flare); color:var(--oil);}
 
   /* ---------- section shell ---------- */
-  section{padding:10vh 6vw;}
-  .section-head{max-width:680px; margin:0 auto 5vh;}
+  section{padding:clamp(40px,6vw,64px) 6vw;}
+  #chart{ padding-top:clamp(8px,1.5vw,16px); }
+  .section-head{max-width:680px; margin:0 auto clamp(28px,4vw,40px);}
   .section-head .eyebrow{margin-bottom:14px;}
   .section-head h2{font-size:clamp(28px,4vw,44px); line-height:1.05;}
   .section-head p{color:var(--bone-dim); margin-top:16px; font-size:16px; line-height:1.6;}
+  .section-head p a{ color:var(--flare); text-decoration:underline; text-underline-offset:2px; }
   .center{text-align:center; margin-left:auto; margin-right:auto;}
 
-  /* ---------- story: split pozo/bosque ---------- */
+  /* ---------- story: problema/iniciativa ---------- */
   .story{
     display:grid; grid-template-columns:1fr 1fr; gap:2px; max-width:1000px; margin:0 auto;
     border:1px solid var(--line); border-radius:4px; overflow:hidden;
+    position:relative;
   }
-  .story-col{padding:36px 30px;}
-  .story-col.pozo{background:linear-gradient(160deg, #241a12, var(--oil-2));}
-  .story-col.bosque{background:linear-gradient(160deg, #182018, var(--oil-2));}
+  .story-col{padding:40px 32px 36px; position:relative; overflow:hidden;}
+  .story-col::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  }
+  .story-col.pozo{background:linear-gradient(160deg, #2a140f, var(--oil-2));}
+  .story-col.pozo::before{background:linear-gradient(90deg, var(--danger), transparent);}
+  .story-col.bosque{background:linear-gradient(160deg, #142018, var(--oil-2));}
+  .story-col.bosque::before{background:linear-gradient(90deg, var(--flare), transparent);}
+  .story-col .icon{ width:28px; height:28px; margin-bottom:16px; display:block; }
+  .story-col.pozo .icon{ color:var(--danger); animation:iconPulseDanger 2.4s ease-in-out infinite; }
+  .story-col.bosque .icon{ color:var(--flare); animation:iconPulseFlare 2.4s ease-in-out infinite; }
+  @keyframes iconPulseDanger{
+    0%,100%{ filter:drop-shadow(0 0 3px rgba(214,64,42,0.3)); }
+    50%{ filter:drop-shadow(0 0 13px rgba(214,64,42,0.9)); }
+  }
+  @keyframes iconPulseFlare{
+    0%,100%{ filter:drop-shadow(0 0 3px rgba(198,255,46,0.3)); }
+    50%{ filter:drop-shadow(0 0 13px rgba(198,255,46,0.9)); }
+  }
   .story-col h3{font-size:20px; margin-bottom:14px;}
-  .story-col.pozo h3{color:var(--clay);}
-  .story-col.bosque h3{color:var(--sage);}
+  .story-col.pozo h3{color:var(--danger);}
+  .story-col.bosque h3{color:var(--flare);}
   .story-col p{color:var(--bone-dim); font-size:15px; line-height:1.65;}
   .story-col .num{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--bone-dim); opacity:.6; display:block; margin-bottom:10px;}
 
-  /* ---------- steps ---------- */
-  .steps{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:22px; max-width:1000px; margin:0 auto;
+  .story-connector{
+    position:absolute; top:81px; left:50%; transform:translate(-50%,-50%);
+    width:46px; height:46px; border-radius:50%; z-index:3;
+    background:var(--oil); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 6px var(--oil), 0 0 22px rgba(198,255,46,0.2);
   }
-  .step{
-    border:1px solid var(--line); padding:26px 20px; border-radius:4px; background:var(--oil-2);
+  .story-connector svg{ width:20px; height:20px; }
+  .story-connector .arrow-stem{ stroke:url(#storyArrowGrad); }
+  .story-connector .arrow-head{ fill:var(--flare); }
+  @media (max-width: 800px){
+    .story-connector{ display:none; }
   }
-  .step .n{font-family:'JetBrains Mono',monospace; color:var(--flare); font-size:13px; margin-bottom:14px;}
-  .step h4{font-family:'Archivo Black',sans-serif; font-size:15px; text-transform:none; margin-bottom:8px;}
-  .step p{font-size:13.5px; color:var(--bone-dim); line-height:1.5;}
 
   /* ---------- roadmap ---------- */
   .roadmap{max-width:720px; margin:0 auto;}
@@ -192,189 +490,388 @@
 
   /* ---------- footer ---------- */
   footer{
-    border-top:1px solid var(--line); padding:6vh 6vw; text-align:center;
+    border-top:1px solid var(--line); padding:clamp(28px,4vw,40px) 6vw; text-align:center;
   }
-  footer .socials{display:flex; gap:20px; justify-content:center; margin-bottom:20px; font-family:'JetBrains Mono',monospace; font-size:13px;}
-  footer .socials a{text-decoration:none; color:var(--bone-dim);}
-  footer .socials a:hover{color:var(--flare);}
+  .footer-mail{
+    display:inline-flex; align-items:center; gap:8px; margin-bottom:18px;
+    text-decoration:none; color:var(--bone-dim);
+    font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.03em;
+    transition:color .2s;
+  }
+  .footer-mail svg{ width:16px; height:16px; flex-shrink:0; }
+  .footer-mail:hover{ color:var(--flare); }
   footer .disclaimer{color:var(--bone-dim); opacity:.55; font-size:11.5px; max-width:520px; margin:0 auto; line-height:1.6;}
 
-  /* ---------- lang toggle ---------- */
-  .lang-toggle{
-    display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace;
-    font-size:12px; letter-spacing:.05em; margin-right:18px;
+  /* ---------- lang switch ---------- */
+  .lang-switch{
+    display:flex; align-items:center; gap:9px; margin-right:20px;
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em;
+    cursor:pointer; user-select:none;
   }
-  .lang-toggle button{
-    background:transparent; border:1px solid var(--line); color:var(--bone-dim);
-    padding:6px 10px; border-radius:2px; cursor:pointer; font-family:inherit; font-size:12px;
-    transition:all .2s;
+  .lang-switch-label{ color:var(--bone-dim); transition:color .2s; }
+  .lang-switch-label.active{ color:var(--flare); }
+  .lang-switch-track{
+    position:relative; width:54px; height:28px; border-radius:28px;
+    background:var(--oil-2); border:1px solid var(--line);
   }
-  .lang-toggle button.active{ border-color:var(--flare); color:var(--flare); }
+  .lang-switch-knob{
+    position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+    background:var(--flare); transition:transform .25s ease;
+    box-shadow:0 1px 3px rgba(0,0,0,0.4);
+  }
+  .lang-switch.is-es .lang-switch-knob{ transform:translateX(26px); }
   .nav-right{display:flex; align-items:center;}
 
-  /* ---------- dropdown (auditoría) ---------- */
-  .dropdown-wrap{ position:relative; display:inline-block; }
-  .btn-primary.dropdown-btn{
-    cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+  /* ---------- hojas al tocar botones ---------- */
+  .leaf{
+    position:fixed; top:0; left:0; z-index:9999; pointer-events:none;
+    width:15px; height:20px; border-radius:0% 100% 0% 100%;
+    will-change:transform, opacity;
+    animation: leafFall linear forwards;
+    filter: drop-shadow(0 0 4px currentColor);
   }
-  .dropdown-btn .caret{ font-size:10px; transition:transform .2s; }
-  .dropdown-wrap.open .dropdown-btn .caret{ transform:rotate(180deg); }
-  .dropdown-menu{
-    position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
-    background:var(--oil-2); border:1px solid var(--line); border-radius:4px;
-    min-width:190px; overflow:hidden; z-index:10;
-    opacity:0; pointer-events:none; transition:opacity .15s ease, transform .15s ease;
+  @keyframes leafFall{
+    0%{ transform:translate(-50%,-50%) rotate(0deg) scale(1); opacity:1; }
+    70%{ opacity:1; }
+    100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(0.55); opacity:0; }
   }
-  .dropdown-wrap.open .dropdown-menu{ opacity:1; pointer-events:auto; }
-  .dropdown-menu a{
-    display:block; padding:13px 18px; text-decoration:none; text-align:left;
-    font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--bone-dim);
-    border-bottom:1px solid var(--line);
+  @media (prefers-reduced-motion: reduce){
+    .leaf{ display:none; }
   }
-  .dropdown-menu a:last-child{ border-bottom:none; }
-  .dropdown-menu a:hover{ color:var(--flare); background:rgba(232,112,58,0.08); }
 
-  /* ---------- audit section ---------- */
+  /* ---------- hojas ambiente, cayendo por la página ---------- */
+  .ambient-leaf{
+    position:fixed; top:-40px; z-index:6; pointer-events:none;
+    width:16px; height:22px; border-radius:0% 100% 0% 100%;
+    filter:drop-shadow(0 0 4px currentColor);
+    animation-name:ambientFall; animation-timing-function:linear; animation-iteration-count:infinite;
+  }
+  @keyframes ambientFall{
+    0%{ transform:translate(0,0) rotate(0deg); opacity:0; }
+    6%{ opacity:.85; }
+    25%{ transform:translate(var(--sway1,40px), 25vh) rotate(90deg); }
+    50%{ transform:translate(var(--sway2,-35px), 52vh) rotate(180deg); }
+    75%{ transform:translate(var(--sway1,40px), 78vh) rotate(270deg); }
+    94%{ opacity:.85; }
+    100%{ transform:translate(var(--sway2,-35px), 108vh) rotate(360deg); opacity:0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ambient-leaf{ display:none; }
+  }
+
   .audit-cta{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
   .audit-note{ text-align:center; color:var(--bone-dim); opacity:.6; font-size:12.5px; margin-top:22px; font-family:'JetBrains Mono',monospace; }
 
   @media (max-width: 800px){
     .story{grid-template-columns:1fr;}
-    .steps{grid-template-columns:1fr 1fr;}
-    nav ul{display:none;}
+    nav{ flex-wrap:wrap; row-gap:14px; }
+    .logo{ order:1; }
+    .nav-right{ order:2; }
+    .nav-socials{
+      order:3; flex-basis:100%; width:100%;
+      justify-content:center; flex-wrap:wrap;
+      gap:8px; max-width:100%; overflow-x:visible;
+    }
+    .social-btn{ padding:7px 10px; font-size:11px; white-space:nowrap; }
   }
   @media (max-width: 480px){
     nav{padding:16px 5vw;}
     .logo{font-size:15px;}
-    .logo img{width:30px; height:30px;}
-    .lang-toggle{margin-right:10px;}
-    .lang-toggle button{padding:5px 8px;}
+    .logo img{width:45px; height:45px;}
+    .lang-switch{margin-right:10px; gap:6px; font-size:11px;}
+    .lang-switch-track{width:46px; height:25px;}
+    .lang-switch-knob{width:18px; height:18px;}
+    .lang-switch.is-es .lang-switch-knob{ transform:translateX(21px); }
     .buy-btn{padding:9px 12px; font-size:11px;}
-    .steps{grid-template-columns:1fr;}
     .hero{padding:6vh 6vw 0;}
-    .hero-ctas{flex-direction:column; align-items:stretch;}
-    .hero-ctas .dropdown-wrap, .hero-ctas .btn-ghost, .hero-ctas .btn-primary{width:100%; text-align:center;}
-    .hero-ctas .dropdown-btn{width:100%; justify-content:center;}
-    .dropdown-menu{left:0; right:0; transform:none; width:100%;}
     .audit-cta{flex-direction:column;}
     .audit-cta a{text-align:center;}
-    .ca-box{flex-direction:column; align-items:flex-start;}
+    .ca-box{flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:16px;}
+    .ca-box-info{ flex-basis:auto; }
     .copy-btn{width:100%;}
+    .nav-socials{ width:100%; gap:6px; }
+    .social-btn{ padding:8px; }
+    .social-btn span{ display:none; }
   }
   @media (prefers-reduced-motion: reduce){
     .marquee span{animation:none;}
+    .partners-track{animation:none;}
+    .bg-pumpjack .beam, .bg-pumpjack .head, .bg-layer::before, .logo img{animation:none;}
+    .story-col .icon{ animation:none; filter:drop-shadow(0 0 6px currentColor); }
+    .live-dot{ animation:none; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+  }
+
+  /* ---------- scroll reveal ---------- */
+  .reveal{
+    opacity:0; transform:translateY(26px);
+    transition:opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ---------- hover lift en tarjetas ---------- */
+  .story-col, .rm-item, .ca-box, .live-treasury{
+    transition:transform .25s ease, box-shadow .25s ease, opacity .7s ease;
+  }
+  .story-col:hover{ transform:translateY(-4px); }
+  .rm-item:hover{ transform:translateX(4px); }
+  .ca-box:hover, .live-treasury:hover{
+    transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  /* ---------- back to top ---------- */
+  #back-to-top{
+    position:fixed; right:24px; top:50%; z-index:500;
+    width:52px; height:52px; border-radius:50%;
+    background:var(--oil-2); border:1.5px solid var(--flare); color:var(--flare);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    opacity:0; pointer-events:none;
+    transform:translateY(-50%) translateX(16px);
+    box-shadow:0 0 18px rgba(198,255,46,0.3);
+    transition:opacity .3s ease, transform .3s ease, box-shadow .2s ease, background .2s ease;
+  }
+  #back-to-top.show{ opacity:1; pointer-events:auto; transform:translateY(-50%) translateX(0); }
+  #back-to-top:hover{ background:var(--flare); color:var(--oil); box-shadow:0 0 26px rgba(198,255,46,0.55); }
+  #back-to-top svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  @media (max-width: 480px){
+    #back-to-top{ right:14px; width:44px; height:44px; }
+    #back-to-top svg{ width:17px; height:17px; }
   }
 </style>
 </head>
 <body>
 
-<div class="marquee"><span data-i18n="marquee">PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ALGARROBO PATAGÓNICO • PRUEBA EN CADENA • NEUQUÉN • PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ALGARROBO PATAGÓNICO • PRUEBA EN CADENA • NEUQUÉN •&nbsp;</span></div>
+<div id="intro-screen">
+  <button class="intro-skip" id="intro-skip">SKIP ▸</button>
+
+  <div class="intro-tree-scene" id="intro-tree-scene">
+    <svg class="intro-trunk-svg" viewBox="0 0 220 220" aria-hidden="true">
+      <path class="intro-trunk" d="M110,220 C107,180 113,140 110,100"/>
+      <path class="intro-branch" d="M110,100 C110,100 88,78 68,66"/>
+      <path class="intro-branch" d="M110,100 C110,100 132,80 154,68"/>
+      <path class="intro-branch" d="M110,130 C110,130 85,118 62,112"/>
+      <path class="intro-branch" d="M110,130 C110,130 135,120 158,116"/>
+    </svg>
+    <!-- las hojas se inyectan acá por JS, reutilizando la misma clase .leaf de los botones -->
+  </div>
+
+  <div class="intro-bottom">
+    <div class="intro-loadbar"><div class="intro-loadfill" id="intro-fill"></div></div>
+    <div class="intro-loadlabel"><span id="intro-pct">0</span>% · LOADING</div>
+  </div>
+</div>
+
+<div class="bg-layer" aria-hidden="true"></div>
+
+<div class="bg-pumpjack" aria-hidden="true">
+  <svg viewBox="0 0 340 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="180" x2="340" y2="180" stroke="#c6ff2e" stroke-width="2"/>
+    <!-- base / samson post -->
+    <line x1="170" y1="180" x2="170" y2="90" stroke="#c6ff2e" stroke-width="4"/>
+    <line x1="150" y1="180" x2="170" y2="100" stroke="#c6ff2e" stroke-width="3"/>
+    <line x1="190" y1="180" x2="170" y2="100" stroke="#c6ff2e" stroke-width="3"/>
+    <!-- beam that rocks -->
+    <g class="beam">
+      <line x1="170" y1="90" x2="290" y2="70" stroke="#c6ff2e" stroke-width="5" stroke-linecap="round"/>
+      <line x1="170" y1="90" x2="80" y2="105" stroke="#c6ff2e" stroke-width="5" stroke-linecap="round"/>
+      <!-- counterweight -->
+      <circle cx="80" cy="105" r="14" fill="#c6ff2e"/>
+      <!-- horsehead + hanger -->
+      <g class="head">
+        <path d="M290 70 Q315 66 318 84 Q320 96 302 100 L288 96 Z" fill="#c6ff2e"/>
+        <line x1="296" y1="94" x2="296" y2="140" stroke="#c6ff2e" stroke-width="4"/>
+      </g>
+    </g>
+    <!-- wellhead -->
+    <rect x="284" y="140" width="24" height="14" rx="2" fill="#c6ff2e"/>
+    <line x1="296" y1="154" x2="296" y2="180" stroke="#c6ff2e" stroke-width="4"/>
+  </svg>
+</div>
+
+
+<div class="marquee"><span data-i18n="marquee">PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ESPECIES PATAGÓNICAS • PRUEBA EN CADENA • NEUQUÉN • PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ESPECIES PATAGÓNICAS • PRUEBA EN CADENA • NEUQUÉN •&nbsp;</span></div>
 
 <nav>
   <div class="logo"><img src="pumptree-logo.webp" alt="PumpTree logo"> PUMPTREE</div>
-  <ul>
-    <li><a href="#historia" data-i18n="navHistoria">Historia</a></li>
-    <li><a href="#comprar" data-i18n="navComprar">Comprar</a></li>
-    <li><a href="#roadmap" data-i18n="navRoadmap">Roadmap</a></li>
-    <li><a href="#chart" data-i18n="navChart">Chart</a></li>
+  <ul class="nav-socials">
+    <li>
+      <a href="https://x.com/pumptreevm" target="_blank" rel="noopener" class="social-btn">
+        <svg viewBox="0 0 24 24"><path d="M18.9 2.4h3.3l-7.2 8.3L23.5 21.6h-6.6l-5.2-6.8-5.9 6.8H2.5l7.7-8.8L1.5 2.4h6.8l4.7 6.2 5.9-6.2Zm-1.1 17.2h1.8L7.3 4.3H5.4l12.4 15.3Z"/></svg>
+        <span>X</span>
+      </a>
+    </li>
+    <li>
+      <a href="https://t.me/pumptree" target="_blank" rel="noopener" class="social-btn">
+        <svg viewBox="0 0 24 24"><path d="M21.9 3.7 2.3 11.3c-1.2.5-1.2 1.2-.2 1.5l5 1.6 1.9 5.9c.2.7.4.9.9.9.4 0 .6-.2.9-.5l2.2-2.1 4.8 3.5c.9.5 1.5.2 1.7-.8L23.4 5c.3-1.2-.5-1.7-1.5-1.3ZM8.3 14l9.4-6.1c.5-.3.9-.1.6.3l-8 7.5-.3 3-1.5-4.5Z"/></svg>
+        <span>Telegram</span>
+      </a>
+    </li>
+    <li>
+      <a href="#chart" class="social-btn">
+        <svg viewBox="0 0 24 24"><path d="M4 20V9h4v11H4Zm6 0V3h4v17h-4Zm6 0v-7h4v7h-4Z"/></svg>
+        <span data-i18n="navChart">Chart</span>
+      </a>
+    </li>
+    <li>
+      <a href="https://x.com/i/communities/1994083288030261445" target="_blank" rel="noopener" class="social-btn">
+        <svg viewBox="0 0 24 24"><path d="M18.9 2.4h3.3l-7.2 8.3L23.5 21.6h-6.6l-5.2-6.8-5.9 6.8H2.5l7.7-8.8L1.5 2.4h6.8l4.7 6.2 5.9-6.2Zm-1.1 17.2h1.8L7.3 4.3H5.4l12.4 15.3Z"/></svg>
+        <span>Com</span>
+      </a>
+    </li>
   </ul>
   <div class="nav-right">
-    <div class="lang-toggle">
-      <button id="lang-es" onclick="setLang('es')" class="active">ES</button>
-      <button id="lang-en" onclick="setLang('en')">EN</button>
+    <div class="lang-switch" id="lang-switch" role="switch" aria-checked="false" tabindex="0">
+      <span class="lang-switch-label en active">EN</span>
+      <span class="lang-switch-track"><span class="lang-switch-knob"></span></span>
+      <span class="lang-switch-label es">ES</span>
     </div>
-    <a href="#comprar" class="buy-btn" data-i18n="navBuy">COMPRAR $PMPT</a>
+    <a href="litepaper.html" class="buy-btn" data-i18n="navBuy">Litepaper</a>
   </div>
 </nav>
 
 <section class="hero">
-  <div class="eyebrow" data-i18n="heroEyebrow">// REFORESTACIÓN VERIFICABLE EN CADENA — NEUQUÉN, ARGENTINA</div>
-  <h1 data-i18n="heroH1">DE CADA<br>POZO,<span class="flare"> UN BOSQUE</span></h1>
-  <p class="sub" data-i18n="heroSub">PumpTree convierte la huella de Vaca Muerta en árboles nativos reales, plantados por la comunidad y verificados por satélite. Cada token financia un algarrobo. Cada árbol, un NFT dinámico que crece con él.</p>
-  <div class="hero-ctas">
-    <div class="dropdown-wrap" id="audit-dropdown">
-      <button type="button" class="btn-primary dropdown-btn" onclick="toggleAudit(event)">
-        <span data-i18n="btnAudit">AUDITORÍA</span> <span class="caret">▾</span>
-      </button>
-      <div class="dropdown-menu">
-        <a href="https://pumptree.gitbook.io/pumptree/auditoria/ingresos" target="_blank" rel="noopener" data-i18n="menuIngresos">Ingresos</a>
-        <a href="https://pumptree.gitbook.io/pumptree/auditoria/gastos" target="_blank" rel="noopener" data-i18n="menuGastos">Gastos</a>
-      </div>
-    </div>
-    <a href="#historia" class="btn-ghost" data-i18n="btnMision">VER LA MISIÓN</a>
-  </div>
-
-  <div class="horizon-wrap">
-    <div class="horizon-label" data-i18n="horizonLabel">POZO PETROLERO → ÁRBOL NATIVO</div>
-    <svg class="horizon" viewBox="0 0 1200 180" preserveAspectRatio="none">
-      <line x1="0" y1="150" x2="1200" y2="150" stroke="rgba(236,227,210,0.12)" stroke-width="1"/>
-      <!-- pumpjacks (left, clay) -->
-      <g stroke="#9c5a2e" stroke-width="3" fill="none" stroke-linecap="round">
-        <g transform="translate(90,150)"><line x1="0" y1="0" x2="0" y2="-55"/><line x1="-30" y1="-55" x2="30" y2="-40"/><line x1="-30" y1="-55" x2="-18" y2="-30"/><line x1="30" y1="-40" x2="18" y2="-20"/><circle cx="-30" cy="-55" r="4" fill="#9c5a2e"/></g>
-        <g transform="translate(220,150)"><line x1="0" y1="0" x2="0" y2="-60"/><line x1="-32" y1="-60" x2="32" y2="-44"/><line x1="-32" y1="-60" x2="-20" y2="-32"/><line x1="32" y1="-44" x2="20" y2="-22"/><circle cx="-32" cy="-60" r="4" fill="#9c5a2e"/></g>
-        <g transform="translate(360,150)"><line x1="0" y1="0" x2="0" y2="-50"/><line x1="-28" y1="-50" x2="28" y2="-36"/><line x1="-28" y1="-50" x2="-16" y2="-26"/><line x1="28" y1="-36" x2="16" y2="-18"/><circle cx="-28" cy="-50" r="4" fill="#9c5a2e"/></g>
-      </g>
-      <!-- transitional dead/small trees (mid, muted) -->
-      <g stroke="#7a6a4f" stroke-width="3" fill="none" stroke-linecap="round">
-        <line x1="520" y1="150" x2="520" y2="115" />
-        <line x1="520" y1="130" x2="500" y2="112" />
-        <line x1="520" y1="122" x2="540" y2="105" />
-        <line x1="620" y1="150" x2="622" y2="105" />
-        <line x1="622" y1="120" x2="600" y2="98" />
-        <line x1="622" y1="112" x2="644" y2="92" />
-      </g>
-      <!-- native trees (right, sage) -->
-      <g fill="#6f8f6a">
-        <g transform="translate(780,150)"><ellipse cx="0" cy="-58" rx="26" ry="30"/><rect x="-4" y="-30" width="8" height="30" fill="#3c4f39"/></g>
-        <g transform="translate(880,150)"><ellipse cx="0" cy="-72" rx="34" ry="38"/><rect x="-5" y="-38" width="10" height="38" fill="#3c4f39"/></g>
-        <g transform="translate(990,150)"><ellipse cx="0" cy="-62" rx="28" ry="32"/><rect x="-4" y="-32" width="8" height="32" fill="#3c4f39"/></g>
-        <g transform="translate(1090,150)"><ellipse cx="0" cy="-80" rx="38" ry="42"/><rect x="-6" y="-42" width="12" height="42" fill="#3c4f39"/></g>
-      </g>
-    </svg>
-  </div>
+  <div class="eyebrow" data-i18n="heroEyebrow">// MASSIVE REFORESTATION INITIATIVE IN VACA MUERTA, ARGENTINA</div>
+  <h1 data-i18n="heroH1">The first <span class="flare">green</span> token on <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, for environmental impact</h1>
+  <p class="sub" data-i18n="heroSub">PumpTree proposes reforesting Vaca Muerta with real native trees, planted by the community and verified by satellite. Fees fund the work. With every parcel of trees, a dynamic NFT that will grow with it.</p>
 </section>
 
 <section class="ca-section" id="comprar">
   <div class="ca-box">
-    <div>
+    <div class="ca-box-info">
       <div class="label" data-i18n="caLabel">CONTRACT ADDRESS (SOLANA)</div>
-      <div class="addr" data-i18n="caAddr">Pega acá tu CA cuando esté deployado…pump</div>
+      <div class="addr" data-i18n="caAddr">35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump</div>
     </div>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('CA_PENDIENTE')" data-i18n="caCopy">COPIAR</button>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump')" data-i18n="caCopy">COPIAR</button>
   </div>
 </section>
 
-<section id="steps-section">
-  <div class="section-head center">
-    <div class="eyebrow" data-i18n="stepsEyebrow">// CUATRO PASOS</div>
-    <h2 data-i18n="stepsH2">Comprar $PMPT</h2>
+<div class="eco-divider" aria-hidden="true">
+  <div class="eco-pump-wrap">
+    <svg class="eco-pump-svg" viewBox="0 0 100 100">
+      <line x1="20" y1="88" x2="80" y2="88" stroke="var(--orange)" stroke-width="2" opacity="0.5"/>
+      <line class="eco-post" x1="50" y1="88" x2="50" y2="40" stroke="var(--orange)" stroke-width="3" stroke-linecap="round"/>
+      <line class="eco-post" x1="38" y1="88" x2="50" y2="40" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"/>
+      <line class="eco-post" x1="62" y1="88" x2="50" y2="40" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"/>
+      <g class="eco-beam">
+        <line x1="26" y1="34" x2="74" y2="30" stroke="var(--orange)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="26" cy="34" r="6" fill="var(--orange)"/>
+        <g class="eco-head">
+          <path d="M74,30 Q88,26 86,36 Q84,42 76,40 L76,32 Z" fill="var(--orange)"/>
+          <line x1="80" y1="36" x2="80" y2="70" stroke="var(--orange)" stroke-width="2"/>
+        </g>
+      </g>
+      <rect x="74" y="70" width="12" height="10" fill="var(--orange)"/>
+    </svg>
   </div>
-  <div class="steps">
-    <div class="step"><div class="n">01</div><h4 data-i18n="step1h">Conseguí una wallet</h4><p data-i18n="step1p">Descargá Phantom o Solflare y guardá tu frase de recuperación.</p></div>
-    <div class="step"><div class="n">02</div><h4 data-i18n="step2h">Comprá SOL</h4><p data-i18n="step2p">En Binance, Lemon o el exchange que uses, y transferilo a tu wallet.</p></div>
-    <div class="step"><div class="n">03</div><h4 data-i18n="step3h">Conectá y swapeá</h4><p data-i18n="step3p">Entrá a Jupiter o Raydium, pegá el contract address y cambiá SOL por $PMPT.</p></div>
-    <div class="step"><div class="n">04</div><h4 data-i18n="step4h">Sumate a la comunidad</h4><p data-i18n="step4p">Cada token comprado acelera el financiamiento de árboles reales en Neuquén.</p></div>
+
+  <div class="eco-line-wrap">
+    <div class="eco-line"></div>
+    <div class="eco-pulse"></div>
   </div>
-</section>
+
+  <div class="eco-tree-wrap" id="eco-tree-wrap">
+    <svg class="eco-trunk-svg" viewBox="0 0 100 100" aria-hidden="true">
+      <path class="eco-trunk" d="M50,100 C48,80 52,60 50,42"/>
+      <path class="eco-branch" d="M50,42 C50,42 38,30 28,24"/>
+      <path class="eco-branch" d="M50,42 C50,42 62,32 72,26"/>
+      <path class="eco-branch" d="M50,58 C50,58 40,50 32,47"/>
+      <path class="eco-branch" d="M50,58 C50,58 60,52 70,50"/>
+    </svg>
+    <!-- las hojas se inyectan acá por JS, en loop, sincronizadas con el bombeo -->
+  </div>
+</div>
 
 <section id="historia">
   <div class="section-head center">
-    <div class="eyebrow" data-i18n="misionEyebrow">// LA MISIÓN</div>
-    <h2 data-i18n="misionH2">No es un token con logo verde.<br>Es una obligación en cadena.</h2>
-    <p data-i18n="misionP">Vaca Muerta produce hidrocarburos y emisiones medibles por satélite. PumpTree traduce ese impacto en algo que se puede plantar, verificar y auditar — por cualquiera, en cualquier momento.</p>
+    <div class="eyebrow" data-i18n="misionEyebrow">// THE MISSION</div>
+    <h2 data-i18n="misionH2">It's not just a token with a green logo.<br>It's a commitment to the generations to come.</h2>
+    <p data-i18n="misionP">PumpTree proposes using a percentage of the fees, in supplies and infrastructure, to reforest the arid steppe of Vaca Muerta, to mitigate emissions from the area, so it can be verified and audited — by anyone, at any time, on-chain and via satellite.</p>
   </div>
   <div class="story">
+    <div class="story-connector" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <defs>
+          <linearGradient id="storyArrowGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#d6402a"/>
+            <stop offset="100%" stop-color="#c6ff2e"/>
+          </linearGradient>
+        </defs>
+        <line x1="3" y1="12" x2="18" y2="12" stroke="url(#storyArrowGrad)" stroke-width="2.4" stroke-linecap="round"/>
+        <path class="arrow-head" d="M15 6 L21 12 L15 18 Z"/>
+      </svg>
+    </div>
     <div class="story-col pozo">
-      <span class="num" data-i18n="pozoNum">HOY</span>
-      <h3 data-i18n="pozoH3">El pozo</h3>
-      <p data-i18n="pozoP">Cada locación productiva deja huella: metano, quema en antorcha, suelo removido. Datos públicos, monitoreados por Sentinel-5P y TROPOMI, pero sin destino concreto.</p>
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2Zm0 6v6m0 3.2h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="num" data-i18n="pozoNum">TODAY</span>
+      <h3 data-i18n="pozoH3">The problem</h3>
+      <p data-i18n="pozoP">Oil activity has grown and will keep growing. Fracking, flares, thousands of daily vehicles and very few trees make the air harder to breathe for tens of thousands of people. Today's forecasts aren't good, in a province already in water emergency.</p>
     </div>
     <div class="story-col bosque">
-      <span class="num" data-i18n="bosqueNum">CON PUMPTREE</span>
-      <h3 data-i18n="bosqueH3">El bosque</h3>
-      <p data-i18n="bosqueP">Algarrobo patagónico, alpataco y jarilla, especies nativas, plantados por viveros de la región. Cada árbol queda registrado como NFT dinámico que evoluciona con su crecimiento real.</p>
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C12 2 5 8 5 14a7 7 0 0 0 14 0c0-6-7-12-7-12Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 14v7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span class="num" data-i18n="bosqueNum">WITH PUMPTREE</span>
+      <h3 data-i18n="bosqueH3">The initiative</h3>
+      <p data-i18n="bosqueP">Promoting mass planting, across the community, companies and the state, of species that absorb large amounts of carbon, using advanced technology and proven wastewater-reuse techniques, to guarantee clean, breathable air in under 5 years.</p>
     </div>
   </div>
+</section>
+
+<section class="partners-section">
+  <div class="section-head center">
+    <div class="eyebrow" data-i18n="partnersEyebrow">// GROWING TOGETHER</div>
+    <h2 data-i18n="partnersH2">Partners &amp; communities</h2>
+  </div>
+  <div class="partners-track-wrap">
+    <div class="partners-track" id="partners-track">
+      <div class="partner-slot"><span class="plus">+</span><span data-i18n="partnerSlot">Join as a partner</span></div>
+      <div class="partner-slot"><span class="plus">+</span><span data-i18n="partnerSlot">Join as a partner</span></div>
+      <div class="partner-slot"><span class="plus">+</span><span data-i18n="partnerSlot">Join as a partner</span></div>
+      <div class="partner-slot"><span class="plus">+</span><span data-i18n="partnerSlot">Join as a partner</span></div>
+      <div class="partner-slot"><span class="plus">+</span><span data-i18n="partnerSlot">Join as a partner</span></div>
+      <div class="partner-slot"><span class="plus">+</span><span data-i18n="partnerSlot">Join as a partner</span></div>
+    </div>
+  </div>
+  <div class="partners-cta" data-i18n="partnersCta">Are you a company, nursery or community org? <a href="https://x.com/pumptreevm" target="_blank" rel="noopener">Let's talk</a>.</div>
+</section>
+
+<section class="dash-teaser-section">
+  <a class="dash-teaser" href="emisiones.html" target="_blank" rel="noopener">
+    <div class="dash-teaser-icon">
+      <svg viewBox="0 0 24 24"><path d="M4 19h16M7 19V9m5 10V5m5 14v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dash-teaser-text">
+      <span class="dash-teaser-eyebrow" data-i18n="dashEyebrow">// LIVE DATA</span>
+      <h3 data-i18n="dashH3">CO₂ Emissions Dashboard</h3>
+      <p data-i18n="dashP">Interactive map of Vaca Muerta well sites, real emissions vs. trees needed to offset them, and a 5-year outlook. Sourced and cross-checked.</p>
+    </div>
+    <div class="dash-teaser-cta">
+      <span data-i18n="dashCta">Open dashboard</span> <span class="arrow">→</span>
+    </div>
+  </a>
+</section>
+
+<section class="hero-ctas-section">
+  <div class="live-treasury">
+    <div class="live-treasury-head">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span data-i18n="liveLabel">LIVE · PROJECT TREASURY</span>
+    </div>
+    <div class="live-amount" id="live-amount">—</div>
+    <div class="live-amount-usd" id="live-amount-usd"></div>
+    <div class="live-sub" data-i18n="liveSub">Balance of the project's public treasury wallet, read directly from the Solana blockchain.</div>
+    <a class="live-explorer-link" href="https://solscan.io/account/GDkZei9e8CuoczpLUcCqTb2UqUymRgGFhhDx5Vwm5tU4" target="_blank" rel="noopener" data-i18n="liveExplorerLink">View on Solscan ↗</a>
+  </div>
+</section>
+
+<section id="auditoria">
+  <div class="section-head center">
+    <div class="eyebrow" data-i18n="auditEyebrow">// TRANSPARENCIA ON-CHAIN</div>
+    <h2 data-i18n="auditH2">Auditoría</h2>
+    <p data-i18n="auditP">Everything in and out of PumpTree's treasury, with transactions, hashes and receipts for every movement. Public, auditable by anyone.</p>
+  </div>
+  <div class="audit-cta">
+    <a href="auditoria.html" class="btn-primary" data-i18n="auditCtaBtn">Auditoría</a>
+  </div>
+  <div class="audit-note" data-i18n="auditNote">Con montos, fechas y hash de cada transacción, a medida que la wallet de tesorería quede activa.</div>
 </section>
 
 <section id="roadmap">
@@ -383,10 +880,12 @@
     <h2 data-i18n="rmH2">De la idea a la raíz</h2>
   </div>
   <div class="roadmap">
-    <div class="rm-item"><div class="rm-phase" data-i18n="rm1phase">FASE 01</div><div><h4 data-i18n="rm1h">Lanzamiento y transparencia</h4><p data-i18n="rm1p">Deploy del token, liquidez bloqueada, litepaper público y dashboard de emisiones de Vaca Muerta.</p></div></div>
-    <div class="rm-item"><div class="rm-phase" data-i18n="rm2phase">FASE 02</div><div><h4 data-i18n="rm2h">Primera plantación</h4><p data-i18n="rm2p">Alianza con Vivero Pensamiento Nativo, primeras 1.000 unidades de algarrobo, alpataco y jarilla en terreno.</p></div></div>
-    <div class="rm-item"><div class="rm-phase" data-i18n="rm3phase">FASE 03</div><div><h4 data-i18n="rm3h">Verificación satelital</h4><p data-i18n="rm3p">Integración NDVI vía Sentinel-2 para monitorear supervivencia y crecimiento en tiempo real.</p></div></div>
-    <div class="rm-item"><div class="rm-phase" data-i18n="rm4phase">FASE 04</div><div><h4 data-i18n="rm4h">Compliance corporativo</h4><p data-i18n="rm4p">PumpTree como servicio de cumplimiento ambiental para operadoras, bajo el Decreto 792/2026.</p></div></div>
+    <div class="rm-item"><div class="rm-phase" data-i18n="rm1phase">FASE 01</div><div><h4 data-i18n="rm1h">Lanzamiento y transparencia</h4><p data-i18n="rm1p">Token deploy on Pump.fun, burned liquidity, public Litepaper, website and live wallet dashboard. Social media active.</p></div></div>
+    <div class="rm-item"><div class="rm-phase" data-i18n="rm2phase">FASE 02</div><div><h4 data-i18n="rm2h">Primera plantación</h4><p data-i18n="rm2p">In agreement with a community and our first company partner, we run the first pilot planting to introduce ourselves to the local community and businesses.</p></div></div>
+    <div class="rm-item"><div class="rm-phase" data-i18n="rm3phase">FASE 03</div><div><h4 data-i18n="rm3h">Escalar la plantación</h4><p data-i18n="rm3p">We scale planting to the first 1,000 trees and add more partnerships.</p></div></div>
+    <div class="rm-item"><div class="rm-phase" data-i18n="rm4phase">FASE 04</div><div><h4 data-i18n="rm4h">Verificación satelital</h4><p data-i18n="rm4p">NDVI integration via Sentinel-2 to track survival and growth in real time.</p></div></div>
+    <div class="rm-item"><div class="rm-phase" data-i18n="rm5phase">FASE 05</div><div><h4 data-i18n="rm5h">Agua de riego</h4><p data-i18n="rm5p">We tackle the irrigation water problem: wastewater reuse, with a model ready to replicate.</p></div></div>
+    <div class="rm-item"><div class="rm-phase" data-i18n="rm6phase">FASE 06</div><div><h4 data-i18n="rm6h">Compliance corporativo</h4><p data-i18n="rm6p">PumpTree as an environmental compliance service for operators, under Decreto 792/2026.</p></div></div>
   </div>
 </section>
 
@@ -400,96 +899,328 @@
   </div>
 </section>
 
-<section id="auditoria">
-  <div class="section-head center">
-    <div class="eyebrow" data-i18n="auditEyebrow">// TRANSPARENCIA ON-CHAIN</div>
-    <h2 data-i18n="auditH2">Auditoría</h2>
-    <p data-i18n="auditP">Todo lo que entra y sale de la tesorería de PumpTree, con wallets, comprobantes y fotos de cada plantación. Documentado afuera del sitio para no cargarlo de más.</p>
-  </div>
-  <div class="audit-cta">
-    <a href="https://pumptree.gitbook.io/pumptree/auditoria/ingresos" target="_blank" rel="noopener" class="btn-primary" data-i18n="menuIngresos">Ingresos</a>
-    <a href="https://pumptree.gitbook.io/pumptree/auditoria/gastos" target="_blank" rel="noopener" class="btn-ghost" data-i18n="menuGastos">Gastos</a>
-  </div>
-  <div class="audit-note" data-i18n="auditNote">Se abre en GitBook, con el detalle completo y links directos a cada wallet.</div>
-</section>
+<button id="back-to-top" aria-label="Volver arriba" title="Volver arriba">
+  <svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
 
 <footer>
-  <div class="socials">
-    <a href="#">X / Twitter</a>
-    <a href="#">Telegram</a>
-    <a href="#">TikTok</a>
-  </div>
-  <div class="disclaimer" data-i18n="disclaimer">$PMPT es un activo cripto de alta volatilidad. Este sitio es informativo y no constituye asesoramiento financiero. Investigá por tu cuenta antes de operar.</div>
+  <a class="footer-mail" href="mailto:info@pumptreevm.com">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3.5 6.5 12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>info@pumptreevm.com</span>
+  </a>
+  <div class="disclaimer" data-i18n="disclaimer">The information used in this project comes from official sources and verifiable data.</div>
 </footer>
 
 <script>
+  (function(){
+    const introEl = document.getElementById('intro-screen');
+    if(!introEl) return;
+    document.body.style.overflow = 'hidden';
+
+    const skipBtn = document.getElementById('intro-skip');
+    const scene = document.getElementById('intro-tree-scene');
+    const fill = document.getElementById('intro-fill');
+    const pctEl = document.getElementById('intro-pct');
+
+    // puntos de la copa en % del contenedor (calculados sobre el viewBox 220x220 del tronco)
+    const leafSpots = [
+      {x:31,  y:30}, {x:69,  y:31}, {x:50, y:22},
+      {x:28,  y:51}, {x:72,  y:53}, {x:50, y:45},
+      {x:41,  y:36}, {x:59,  y:36}, {x:50, y:58},
+      {x:38,  y:58}, {x:62,  y:58}, {x:50, y:33}
+    ];
+    const leafColors = ['#c6ff2e', '#9fe842', '#7ed957', '#5fff8f'];
+    const leaves = leafSpots.map(spot => {
+      const el = document.createElement('div');
+      el.className = 'leaf';
+      const c = leafColors[Math.floor(Math.random()*leafColors.length)];
+      el.style.left = spot.x + '%';
+      el.style.top = spot.y + '%';
+      el.style.background = c;
+      el.style.color = c;
+      el.style.setProperty('--leaf-rot', ((Math.random()*2-1)*30).toFixed(0) + 'deg');
+      scene.appendChild(el);
+      return el;
+    });
+
+    let done = false;
+    const duration = 1900; // el árbol termina de crecer en ~1.9s
+    const start = performance.now();
+
+    function paint(p){
+      fill.style.width = p + '%';
+      pctEl.textContent = Math.floor(p);
+      const shown = Math.round((p/100) * leaves.length);
+      leaves.forEach((el, i) => { if(i < shown) el.classList.add('show'); });
+    }
+
+    function step(now){
+      if(done) return;
+      const p = Math.min(100, ((now - start) / duration) * 100);
+      paint(p);
+      if(p < 100){
+        requestAnimationFrame(step);
+      } else {
+        finish();
+      }
+    }
+
+    function finish(){
+      done = true;
+      paint(100);
+      // pausa breve para que se note el árbol completo, y a la web
+      // (crecimiento + pausa + fade ≈ 2.7s, siempre por debajo de 3s)
+      setTimeout(hideIntro, 300);
+    }
+
+    function hideIntro(){
+      introEl.classList.add('hide');
+      document.body.style.overflow = '';
+      setTimeout(() => introEl.remove(), 500);
+    }
+
+    skipBtn.addEventListener('click', () => {
+      if(done) return;
+      finish();
+    });
+
+    requestAnimationFrame(step);
+  })();
+
+  (function(){
+    const amountEl = document.getElementById('live-amount');
+    const usdEl = document.getElementById('live-amount-usd');
+    if(!amountEl) return;
+
+    const TREASURY_WALLET = 'GDkZei9e8CuoczpLUcCqTb2UqUymRgGFhhDx5Vwm5tU4';
+    const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
+
+    async function loadUsd(sol){
+      try{
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        const data = await res.json();
+        const price = data && data.solana && data.solana.usd;
+        if(typeof price === 'number'){
+          const usd = sol * price;
+          usdEl.textContent = '≈ $' + usd.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' USD';
+        }
+      } catch(e){
+        // si falla el precio, dejamos solo el monto en SOL, sin romper nada
+      }
+    }
+
+    async function loadBalance(){
+      try{
+        const res = await fetch(SOLANA_RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc:'2.0', id:1, method:'getBalance', params:[TREASURY_WALLET] })
+        });
+        const data = await res.json();
+        if(data && data.result && typeof data.result.value === 'number'){
+          const sol = data.result.value / 1e9;
+          amountEl.textContent = sol.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:4}) + ' SOL';
+          loadUsd(sol);
+        }
+      } catch(e){
+        // sin conexión o RPC caído: se queda el guion default, no rompe la página
+      }
+    }
+
+    loadBalance();
+  })();
+
+  (function(){
+    const btn = document.getElementById('back-to-top');
+    if(!btn) return;
+    window.addEventListener('scroll', () => {
+      btn.classList.toggle('show', window.scrollY > 500);
+    }, { passive: true });
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  })();
+
+  (function(){
+    const wrap = document.getElementById('eco-tree-wrap');
+    if(!wrap) return;
+    const spots = [
+      {x:28, y:24, delay:0.0}, {x:72, y:26, delay:0.35},
+      {x:50, y:20, delay:0.7}, {x:32, y:47, delay:1.05},
+      {x:70, y:50, delay:1.4}, {x:50, y:35, delay:1.75}
+    ];
+    const colors = ['#c6ff2e', '#9fe842', '#7ed957', '#5fff8f'];
+    spots.forEach(spot => {
+      const el = document.createElement('div');
+      el.className = 'leaf';
+      const c = colors[Math.floor(Math.random()*colors.length)];
+      el.style.left = spot.x + '%';
+      el.style.top = spot.y + '%';
+      el.style.background = c;
+      el.style.color = c;
+      el.style.animationDelay = spot.delay + 's';
+      el.style.setProperty('--leaf-rot', ((Math.random()*2-1)*25).toFixed(0) + 'deg');
+      wrap.appendChild(el);
+    });
+  })();
+
+  (function(){
+    // stagger dentro de grupos (story, roadmap) para que aparezcan en cascada
+    document.querySelectorAll('.story, .roadmap').forEach(group => {
+      Array.from(group.children).forEach((child, i) => {
+        if(child.classList.contains('story-connector')) return; // insignia decorativa, no lleva reveal
+        child.classList.add('reveal');
+        child.style.transitionDelay = (i * 90) + 'ms';
+      });
+    });
+    // bloques sueltos, sin stagger
+    document.querySelectorAll('.section-head, .ca-box, .audit-cta, .live-treasury, .chart-frame, .dash-teaser')
+      .forEach(el => el.classList.add('reveal'));
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  })();
+
+  (function(){
+    const track = document.getElementById('partners-track');
+    if(!track) return;
+    // duplicamos el set una vez para que el loop de -50% sea perfecto, sin salto
+    track.innerHTML += track.innerHTML;
+  })();
+
+  (function(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colors = ['#c6ff2e', '#9fe842', '#7ed957', '#5fff8f'];
+    const count = 4;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'ambient-leaf';
+      el.setAttribute('aria-hidden', 'true');
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      el.style.background = c;
+      el.style.color = c;
+      el.style.left = (8 + Math.random() * 84) + 'vw';
+      el.style.setProperty('--sway1', (30 + Math.random() * 50) + 'px');
+      el.style.setProperty('--sway2', (-(30 + Math.random() * 50)) + 'px');
+      const duration = 16 + Math.random() * 10; // 16-26s
+      el.style.animationDuration = duration.toFixed(1) + 's';
+      el.style.animationDelay = (-(Math.random() * duration)).toFixed(1) + 's'; // arrancan ya en curso, desfasadas
+      document.body.appendChild(el);
+    }
+  })();
+
   const i18n = {
     marquee: {
-      es: 'PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ALGARROBO PATAGÓNICO • PRUEBA EN CADENA • NEUQUÉN • PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ALGARROBO PATAGÓNICO • PRUEBA EN CADENA • NEUQUÉN •&nbsp;',
-      en: 'PUMPTREE • <b>$PMPT</b> • VACA MUERTA → NATIVE FOREST • PATAGONIAN ALGARROBO • ON-CHAIN PROOF • NEUQUÉN • PUMPTREE • <b>$PMPT</b> • VACA MUERTA → NATIVE FOREST • PATAGONIAN ALGARROBO • ON-CHAIN PROOF • NEUQUÉN •&nbsp;'
+      es: 'PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ESPECIES PATAGÓNICAS • PRUEBA EN CADENA • NEUQUÉN • PUMPTREE • <b>$PMPT</b> • VACA MUERTA → BOSQUE NATIVO • ESPECIES PATAGÓNICAS • PRUEBA EN CADENA • NEUQUÉN •&nbsp;',
+      en: 'PUMPTREE • <b>$PMPT</b> • VACA MUERTA → NATIVE FOREST • PATAGONIAN NATIVE SPECIES • ON-CHAIN PROOF • NEUQUÉN • PUMPTREE • <b>$PMPT</b> • VACA MUERTA → NATIVE FOREST • PATAGONIAN NATIVE SPECIES • ON-CHAIN PROOF • NEUQUÉN •&nbsp;'
     },
-    navHistoria: {es:'Historia', en:'Story'},
-    navComprar: {es:'Comprar', en:'Buy'},
-    navRoadmap: {es:'Roadmap', en:'Roadmap'},
     navChart: {es:'Chart', en:'Chart'},
-    navBuy: {es:'COMPRAR $PMPT', en:'BUY $PMPT'},
-    heroEyebrow: {es:'// REFORESTACIÓN VERIFICABLE EN CADENA — NEUQUÉN, ARGENTINA', en:'// ON-CHAIN VERIFIABLE REFORESTATION — NEUQUÉN, ARGENTINA'},
-    heroH1: {es:'DE CADA<br>POZO,<span class="flare"> UN BOSQUE</span>', en:'FROM EVERY<br>WELL,<span class="flare"> A FOREST</span>'},
-    heroSub: {es:'PumpTree convierte la huella de Vaca Muerta en árboles nativos reales, plantados por la comunidad y verificados por satélite. Cada token financia un algarrobo. Cada árbol, un NFT dinámico que crece con él.', en:'PumpTree turns the footprint of Vaca Muerta into real native trees, planted by the community and verified by satellite. Every token funds an algarrobo. Every tree, a dynamic NFT that grows with it.'},
-    btnAudit: {es:'AUDITORÍA', en:'AUDIT'},
-    btnMision: {es:'VER LA MISIÓN', en:'SEE THE MISSION'},
-    menuIngresos: {es:'Ingresos', en:'Income'},
-    menuGastos: {es:'Gastos', en:'Expenses'},
+    navBuy: {es:'Litepaper', en:'Litepaper'},
+    heroEyebrow: {es:'// INICIATIVA DE FORESTACIÓN MASIVA EN VACA MUERTA, ARGENTINA', en:'// MASSIVE REFORESTATION INITIATIVE IN VACA MUERTA, ARGENTINA'},
+    heroH1: {es:'Primer token <span class="flare">verde</span> en <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, de impacto ambiental', en:'The first <span class="flare">green</span> token on <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, for environmental impact'},
+    heroSub: {es:'PumpTree propone reforestar Vaca Muerta con árboles nativos reales, plantados por la comunidad y verificados por satélite. Los fees financian el trabajo. Con cada parcela de árboles, un NFT dinámico que crecerá con él.', en:'PumpTree proposes reforesting Vaca Muerta with real native trees, planted by the community and verified by satellite. Fees fund the work. With every parcel of trees, a dynamic NFT that will grow with it.'},
+    dashEyebrow: {es:'// DATA EN VIVO', en:'// LIVE DATA'},
+    dashH3: {es:'Dashboard de emisiones CO₂', en:'CO₂ Emissions Dashboard'},
+    dashP: {es:'Mapa interactivo de los pozos de Vaca Muerta, emisiones reales vs. árboles necesarios para compensarlas, y una proyección a 5 años. Con fuentes verificadas.', en:'Interactive map of Vaca Muerta well sites, real emissions vs. trees needed to offset them, and a 5-year outlook. Sourced and cross-checked.'},
+    dashCta: {es:'Abrir dashboard', en:'Open dashboard'},
+    partnersEyebrow: {es:'// CRECIENDO JUNTOS', en:'// GROWING TOGETHER'},
+    partnersH2: {es:'Socios y comunidades', en:'Partners &amp; communities'},
+    partnerSlot: {es:'Sumate como socio', en:'Join as a partner'},
+    partnersCta: {es:'¿Sos una empresa, vivero u organización comunitaria? <a href="https://x.com/pumptreevm" target="_blank" rel="noopener">Hablemos</a>.', en:"Are you a company, nursery or community org? <a href=\"https://x.com/pumptreevm\" target=\"_blank\" rel=\"noopener\">Let's talk</a>."},
+    liveLabel: {es:'EN VIVO · TESORERÍA DEL PROYECTO', en:'LIVE · PROJECT TREASURY'},
+    liveSub: {es:'Balance de la wallet pública de tesorería del proyecto, leído directo de la blockchain de Solana.', en:"Balance of the project's public treasury wallet, read directly from the Solana blockchain."},
+    liveExplorerLink: {es:'Ver en Solscan ↗', en:'View on Solscan ↗'},
+    auditCtaBtn: {es:'Auditoría', en:'Audit'},
     horizonLabel: {es:'POZO PETROLERO → ÁRBOL NATIVO', en:'OIL WELL → NATIVE TREE'},
     caLabel: {es:'CONTRACT ADDRESS (SOLANA)', en:'CONTRACT ADDRESS (SOLANA)'},
-    caAddr: {es:'Pega acá tu CA cuando esté deployado…pump', en:'Paste your CA here once deployed…pump'},
+    caAddr: {es:'35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump', en:'35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump'},
     caCopy: {es:'COPIAR', en:'COPY'},
-    stepsEyebrow: {es:'// CUATRO PASOS', en:'// FOUR STEPS'},
-    stepsH2: {es:'Comprar $PMPT', en:'Buy $PMPT'},
-    step1h: {es:'Conseguí una wallet', en:'Get a wallet'},
-    step1p: {es:'Descargá Phantom o Solflare y guardá tu frase de recuperación.', en:'Download Phantom or Solflare and save your recovery phrase.'},
-    step2h: {es:'Comprá SOL', en:'Buy SOL'},
-    step2p: {es:'En Binance, Lemon o el exchange que uses, y transferilo a tu wallet.', en:'On Binance, Lemon or whichever exchange you use, then transfer it to your wallet.'},
-    step3h: {es:'Conectá y swapeá', en:'Connect and swap'},
-    step3p: {es:'Entrá a Jupiter o Raydium, pegá el contract address y cambiá SOL por $PMPT.', en:'Go to Jupiter or Raydium, paste the contract address and swap SOL for $PMPT.'},
-    step4h: {es:'Sumate a la comunidad', en:'Join the community'},
-    step4p: {es:'Cada token comprado acelera el financiamiento de árboles reales en Neuquén.', en:'Every token bought speeds up funding for real trees in Neuquén.'},
     misionEyebrow: {es:'// LA MISIÓN', en:'// THE MISSION'},
-    misionH2: {es:'No es un token con logo verde.<br>Es una obligación en cadena.', en:"It's not a token with a green logo.<br>It's an on-chain obligation."},
-    misionP: {es:'Vaca Muerta produce hidrocarburos y emisiones medibles por satélite. PumpTree traduce ese impacto en algo que se puede plantar, verificar y auditar — por cualquiera, en cualquier momento.', en:'Vaca Muerta produces hydrocarbons and emissions measurable by satellite. PumpTree translates that impact into something anyone can plant, verify and audit, anytime.'},
+    misionH2: {es:'No es solo un token con logo verde.<br>Es un compromiso con las siguientes generaciones.', en:"It's not just a token with a green logo.<br>It's a commitment to the generations to come."},
+    misionP: {es:'PumpTree propone usar el porcentaje de los fees, en insumos e infraestructura para reforestar la estepa árida de Vaca Muerta, para mitigar las emisiones de la zona, y que se pueda verificar y auditar — por cualquiera, en cualquier momento, on-chain y vía satélite.', en:'PumpTree proposes using a percentage of the fees, in supplies and infrastructure, to reforest the arid steppe of Vaca Muerta, to mitigate emissions from the area, so it can be verified and audited — by anyone, at any time, on-chain and via satellite.'},
     pozoNum: {es:'HOY', en:'TODAY'},
-    pozoH3: {es:'El pozo', en:'The well'},
-    pozoP: {es:'Cada locación productiva deja huella: metano, quema en antorcha, suelo removido. Datos públicos, monitoreados por Sentinel-5P y TROPOMI, pero sin destino concreto.', en:'Every production site leaves a footprint: methane, flaring, disturbed soil. Public data, monitored by Sentinel-5P and TROPOMI, but with no concrete destination.'},
+    pozoH3: {es:'El problema', en:'The problem'},
+    pozoP: {es:'La actividad petrolera ha aumentado y seguirá en aumento. Fracking, flares, miles de vehículos a diario y muy pocos árboles, complican el oxígeno a respirar de decenas de miles de personas. Hoy, las proyecciones a futuro, no son buenas, en una provincia que ya está en emergencia hídrica.', en:"Oil activity has grown and will keep growing. Fracking, flares, thousands of daily vehicles and very few trees make the air harder to breathe for tens of thousands of people. Today's forecasts aren't good, in a province already in water emergency."},
     bosqueNum: {es:'CON PUMPTREE', en:'WITH PUMPTREE'},
-    bosqueH3: {es:'El bosque', en:'The forest'},
-    bosqueP: {es:'Algarrobo patagónico, alpataco y jarilla, especies nativas, plantados por viveros de la región. Cada árbol queda registrado como NFT dinámico que evoluciona con su crecimiento real.', en:'Patagonian algarrobo, alpataco and jarilla, native species, planted by local nurseries. Every tree is registered as a dynamic NFT that evolves with its real growth.'},
+    bosqueH3: {es:'La iniciativa', en:'The initiative'},
+    bosqueP: {es:'Promover en la comunidad, las empresas y el estado, la plantación masiva de especies que absorban grandes cantidades de carbono, usando tecnología avanzada y técnicas probadas de reutilización de aguas residuales, para garantizar un aire limpio y respirable, en menos de 5 años.', en:'Promoting mass planting, across the community, companies and the state, of species that absorb large amounts of carbon, using advanced technology and proven wastewater-reuse techniques, to guarantee clean, breathable air in under 5 years.'},
     rmEyebrow: {es:'// HOJA DE RUTA', en:'// ROADMAP'},
     rmH2: {es:'De la idea a la raíz', en:'From idea to root'},
     rm1phase: {es:'FASE 01', en:'PHASE 01'},
     rm1h: {es:'Lanzamiento y transparencia', en:'Launch and transparency'},
-    rm1p: {es:'Deploy del token, liquidez bloqueada, litepaper público y dashboard de emisiones de Vaca Muerta.', en:'Token deploy, locked liquidity, public litepaper and a Vaca Muerta emissions dashboard.'},
+    rm1p: {es:'Deploy del token en Pump.fun, liquidez quemada, Litepaper público, página web y dashboard de wallet online. Redes sociales activas.', en:'Token deploy on Pump.fun, burned liquidity, public Litepaper, website and live wallet dashboard. Social media active.'},
     rm2phase: {es:'FASE 02', en:'PHASE 02'},
     rm2h: {es:'Primera plantación', en:'First planting'},
-    rm2p: {es:'Alianza con Vivero Pensamiento Nativo, primeras 1.000 unidades de algarrobo, alpataco y jarilla en terreno.', en:'Partnership with Vivero Pensamiento Nativo, first 1,000 algarrobo, alpataco and jarilla trees in the ground.'},
+    rm2p: {es:'En acuerdo con una comunidad y la primera empresa, se realiza la primera prueba piloto para darnos a conocer a la comunidad local y empresas.', en:'In agreement with a community and our first company partner, we run the first pilot planting to introduce ourselves to the local community and businesses.'},
     rm3phase: {es:'FASE 03', en:'PHASE 03'},
-    rm3h: {es:'Verificación satelital', en:'Satellite verification'},
-    rm3p: {es:'Integración NDVI vía Sentinel-2 para monitorear supervivencia y crecimiento en tiempo real.', en:'NDVI integration via Sentinel-2 to track survival and growth in real time.'},
+    rm3h: {es:'Escalar la plantación', en:'Scale the planting'},
+    rm3p: {es:'Escalamos la plantación a los primeros 1.000 árboles y sumamos más partnerships.', en:'We scale planting to the first 1,000 trees and add more partnerships.'},
     rm4phase: {es:'FASE 04', en:'PHASE 04'},
-    rm4h: {es:'Compliance corporativo', en:'Corporate compliance'},
-    rm4p: {es:'PumpTree como servicio de cumplimiento ambiental para operadoras, bajo el Decreto 792/2026.', en:'PumpTree as an environmental compliance service for operators, under Decreto 792/2026.'},
+    rm4h: {es:'Verificación satelital', en:'Satellite verification'},
+    rm4p: {es:'Integración NDVI vía Sentinel-2 para monitorear supervivencia y crecimiento en tiempo real.', en:'NDVI integration via Sentinel-2 to track survival and growth in real time.'},
+    rm5phase: {es:'FASE 05', en:'PHASE 05'},
+    rm5h: {es:'Agua de riego', en:'Irrigation water'},
+    rm5p: {es:'Abordamos el problema del agua de riego: reutilización de aguas residuales, con un modelo listo para replicar.', en:'We tackle the irrigation water problem: wastewater reuse, with a model ready to replicate.'},
+    rm6phase: {es:'FASE 06', en:'PHASE 06'},
+    rm6h: {es:'Compliance corporativo', en:'Corporate compliance'},
+    rm6p: {es:'PumpTree como servicio de cumplimiento ambiental para operadoras, bajo el Decreto 792/2026.', en:'PumpTree as an environmental compliance service for operators, under Decreto 792/2026.'},
     chartEyebrow: {es:'// EN VIVO', en:'// LIVE'},
     chartPlaceholder: {es:'[ acá va el iframe de Dexscreener/Birdeye una vez creado el pool ]', en:'[ Dexscreener/Birdeye iframe goes here once the pool is created ]'},
     auditEyebrow: {es:'// TRANSPARENCIA ON-CHAIN', en:'// ON-CHAIN TRANSPARENCY'},
     auditH2: {es:'Auditoría', en:'Audit'},
-    auditP: {es:'Todo lo que entra y sale de la tesorería de PumpTree, con wallets, comprobantes y fotos de cada plantación. Documentado afuera del sitio para no cargarlo de más.', en:"Everything in and out of PumpTree's treasury, with wallets, receipts and photos of every planting. Documented outside the site so it doesn't get bloated."},
-    auditNote: {es:'Se abre en GitBook, con el detalle completo y links directos a cada wallet.', en:'Opens in GitBook, with the full detail and direct links to every wallet.'},
-    disclaimer: {es:'$PMPT es un activo cripto de alta volatilidad. Este sitio es informativo y no constituye asesoramiento financiero. Investigá por tu cuenta antes de operar.', en:'$PMPT is a highly volatile crypto asset. This site is informational and does not constitute financial advice. Do your own research before trading.'}
+    auditP: {es:'Todo lo que entra y sale de la tesorería de PumpTree, con transacciones, hash y comprobantes de cada movimiento. Público, auditable por cualquiera.', en:"Everything in and out of PumpTree's treasury, with transactions, hashes and receipts for every movement. Public, auditable by anyone."},
+    auditNote: {es:'Con montos, fechas y hash de cada transacción, a medida que la wallet de tesorería quede activa.', en:'With amounts, dates, and transaction hashes for each entry, as the treasury wallet goes active.'},
+    disclaimer: {es:'La información utilizada en este proyecto, proviene de fuentes oficiales y datos verificables.', en:'The information used in this project comes from official sources and verifiable data.'}
   };
+
+  function spawnLeaves(x, y){
+    const colors = ['#c6ff2e', '#9fe842', '#7ed957', '#5fff8f'];
+    const count = 6 + Math.floor(Math.random()*3);
+    for(let i=0; i<count; i++){
+      const leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      const side = Math.random() < 0.5 ? -1 : 1;
+      const dx = side * (60 + Math.random()*130);
+      const dy = (Math.random()*2 - 1) * 40;
+      const rot = (Math.random()*2 - 1) * 360;
+      const dur = 1.3 + Math.random()*0.7;
+      leaf.style.left = x + 'px';
+      leaf.style.top = y + 'px';
+      leaf.style.setProperty('--dx', dx.toFixed(1) + 'px');
+      leaf.style.setProperty('--dy', dy.toFixed(1) + 'px');
+      leaf.style.setProperty('--rot', rot.toFixed(0) + 'deg');
+      leaf.style.animationDuration = dur.toFixed(2) + 's';
+      const c = colors[Math.floor(Math.random()*colors.length)];
+      leaf.style.background = c;
+      leaf.style.color = c;
+      document.body.appendChild(leaf);
+      leaf.addEventListener('animationend', () => leaf.remove());
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-primary, .btn-ghost, .buy-btn, .copy-btn, .dropdown-menu a, .lang-switch, .social-btn, #back-to-top, .dash-teaser, .footer-mail');
+    if(btn){
+      const r = btn.getBoundingClientRect();
+      spawnLeaves(r.left + r.width/2, r.top + r.height/2);
+    }
+  });
 
   function setLang(lang){
     document.documentElement.lang = lang;
-    document.getElementById('lang-es').classList.toggle('active', lang==='es');
-    document.getElementById('lang-en').classList.toggle('active', lang==='en');
+    const sw = document.getElementById('lang-switch');
+    sw.classList.toggle('is-es', lang==='es');
+    sw.setAttribute('aria-checked', lang==='es');
+    sw.querySelector('.lang-switch-label.en').classList.toggle('active', lang==='en');
+    sw.querySelector('.lang-switch-label.es').classList.toggle('active', lang==='es');
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const key = el.getAttribute('data-i18n');
       if(i18n[key] && i18n[key][lang] !== undefined){
@@ -498,11 +1229,19 @@
     });
   }
 
-  function toggleAudit(e){
-    e.stopPropagation();
-    document.getElementById('audit-dropdown').classList.toggle('open');
-  }
-  document.addEventListener('click', ()=> document.getElementById('audit-dropdown').classList.remove('open'));
+  const langSwitchEl = document.getElementById('lang-switch');
+  langSwitchEl.addEventListener('click', () => {
+    const next = langSwitchEl.classList.contains('is-es') ? 'en' : 'es';
+    setLang(next);
+  });
+  langSwitchEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      langSwitchEl.click();
+    }
+  });
+
+  setLang('en');
 </script>
 
 </body>

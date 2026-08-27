@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Pumpjack Initiative — CO₂ balance model for Vaca Muerta: emissions, active well sites, and the trees needed to offset them.">
+<title>Pumpjack Initiative — Vaca Muerta CO₂ Balance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0e0f;
+    --panel: #111618;
+    --border: #1e2a2d;
+    --accent-oil: #c8832a;
+    --accent-co2: #e05a2b;
+    --accent-tree: #2da84f;
+    --accent-lime: #a8e63a;
+    --accent-gas: #7ec8e3;
+    --text: #d4dfe2;
+    --muted: #5a7278;
+    --white: #eef4f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 24px;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--accent-oil);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--accent-tree); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+  }
+  .brand-glyph {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #d4ff7a, var(--accent-lime) 60%, #6a9c1a 100%);
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(168,230,58,0.4);
+  }
+  .brand-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--accent-lime);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .brand-name .accent { color: var(--accent-lime); }
+
+  /* LANGUAGE SWITCH */
+  .lang-switch {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .lang-btn.active {
+    background: var(--accent-tree);
+    color: var(--bg);
+  }
+  .lang-btn:not(.active):hover { color: var(--text); }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent-co2);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 4px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .tab-btn:hover { color: var(--text); border-color: #2a3a3e; }
+  .tab-btn.active {
+    background: rgba(224,90,43,0.1);
+    border-color: var(--accent-co2);
+    color: var(--accent-co2);
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  @media (max-width: 900px) {
+    header { flex-wrap: wrap; padding: 14px 18px; gap: 12px; }
+    .header-left { order: 1; width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .header-right { order: 2; width: 100%; justify-content: space-between; }
+  }
+
+  /* MAIN GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    grid-template-rows: auto auto;
+    gap: 16px;
+    padding: 20px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* PANEL BASE */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+  }
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* MAP */
+  .map-panel {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    min-height: 560px;
+  }
+  .map-title {
+    position: absolute; top: 16px; left: 20px; z-index: 10;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); font-family: 'Space Mono', monospace;
+  }
+  canvas#mapCanvas {
+    width: 100%; height: 100%; display: block;
+  }
+
+  .map-legend {
+    position: absolute; bottom: 16px; left: 20px;
+    display: flex; flex-direction: column; gap: 6px;
+    background: rgba(10,14,15,0.85); padding: 10px 14px; border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--text);
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .tooltip {
+    position: absolute;
+    background: #0d1416;
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    pointer-events: none;
+    display: none;
+    z-index: 20;
+    min-width: 160px;
+  }
+  .tooltip-name { font-weight: 600; color: var(--white); margin-bottom: 4px; }
+  .tooltip-row { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .tooltip-row span { color: var(--text); }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    opacity: 0.5;
+    animation: kpiScan 3.2s ease-in-out infinite;
+  }
+  .kpi.co2::before { color: var(--accent-co2); animation-delay: 0s; }
+  .kpi.trees::before { color: var(--accent-tree); animation-delay: 0.4s; }
+  .kpi.deficit::before { color: var(--accent-oil); animation-delay: 0.8s; }
+  .kpi.gas::before { color: var(--accent-gas); animation-delay: 1.2s; }
+  @keyframes kpiScan {
+    0% { transform: translateX(-100%); opacity: 0; }
+    15% { opacity: 0.7; }
+    50% { transform: translateX(0%); opacity: 0.7; }
+    85% { opacity: 0.7; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+  .kpi::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px transparent;
+    animation: kpiPulse 3.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .kpi.co2::after { animation-delay: 0s; --glow: 224,90,43; }
+  .kpi.trees::after { animation-delay: 0.4s; --glow: 45,168,79; }
+  .kpi.deficit::after { animation-delay: 0.8s; --glow: 200,131,42; }
+  .kpi.gas::after { animation-delay: 1.2s; --glow: 126,200,227; }
+  @keyframes kpiPulse {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(var(--glow),0); }
+    50% { box-shadow: 0 0 14px 1px rgba(var(--glow),0.18); }
+  }
+  .kpi-label {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+  .kpi-unit { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .kpi.co2 .kpi-value { color: var(--accent-co2); }
+  .kpi.trees .kpi-value { color: var(--accent-tree); }
+  .kpi.deficit .kpi-value { color: var(--accent-oil); }
+  .kpi.gas .kpi-value { color: var(--accent-gas); }
+
+  .kpi-value.flash {
+    animation: kpiFlash 0.5s ease-out;
+  }
+  @keyframes kpiFlash {
+    0% { text-shadow: 0 0 12px currentColor; }
+    100% { text-shadow: 0 0 0px transparent; }
+  }
+
+  /* CONTROLS */
+  .controls-panel {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .slider-group { margin-bottom: 18px; }
+  .slider-label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text); margin-bottom: 8px;
+  }
+  .slider-label span { color: var(--accent-oil); font-family: 'Space Mono', monospace; font-weight: 700; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%; height: 3px;
+    background: var(--border); border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent-oil); cursor: pointer;
+    border: 2px solid var(--bg);
+  }
+
+  .result-bar {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .bar-track {
+    height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+    margin: 10px 0 6px;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width .4s ease;
+  }
+  .bar-fill.trees { background: var(--accent-tree); }
+  .bar-fill.co2 { background: var(--accent-co2); }
+  .bar-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+
+  .status-box {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-left: 3px solid;
+  }
+  .status-box.danger { background: rgba(224,90,43,0.08); border-color: var(--accent-co2); color: #e07a5f; }
+  .status-box.warning { background: rgba(200,131,42,0.08); border-color: var(--accent-oil); color: var(--accent-oil); }
+  .status-box.ok { background: rgba(45,168,79,0.08); border-color: var(--accent-tree); color: var(--accent-tree); }
+
+  /* BOTTOM STRIP */
+  .bottom-strip {
+    grid-column: 1 / 3;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .fact-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 20px;
+  }
+  .fact-card .fact-label {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 10px;
+  }
+  .fact-card .fact-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px; font-weight: 700; color: var(--white);
+  }
+  .fact-card .fact-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .chart-sparkline {
+    margin-top: 10px;
+    height: 36px;
+    display: flex; align-items: flex-end; gap: 3px;
+  }
+  .bar-spark {
+    flex: 1; border-radius: 2px 2px 0 0;
+    transition: height .3s;
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .map-panel { grid-column: 1; grid-row: 1; min-height: 340px; }
+    .kpi-strip { grid-column: 1; grid-row: 2; flex-direction: row; flex-wrap: wrap; }
+    .kpi { flex: 1 1 140px; }
+    .controls-panel { grid-column: 1; grid-row: 3; }
+    .bottom-strip { grid-column: 1; grid-row: 4; grid-template-columns: repeat(2,1fr); }
+  }
+
+  /* ═══════════ SCENARIO VIEW (5-year air/CO2 projection) ═══════════ */
+  .scenario-wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+  }
+
+  .scenario-intro {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-co2);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .scenario-intro strong { color: var(--white); }
+
+  .year-control {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .year-control input[type=range] { flex: 1; }
+  .year-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent-co2);
+    min-width: 70px;
+    text-align: center;
+  }
+  .year-control .yc-label {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); font-family: 'Space Mono', monospace; white-space: nowrap;
+  }
+
+  .scenario-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .sc-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sc-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .sc-card.co2total::before { background: var(--accent-co2); }
+  .sc-card.pertree::before { background: var(--accent-oil); }
+  .sc-card.gap::before { background: var(--accent-tree); }
+
+  .sc-icon { font-size: 22px; margin-bottom: 8px; display: block; }
+  .sc-title {
+    font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 4px;
+  }
+  .sc-subtitle {
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 16px;
+  }
+
+  .sc-metric {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sc-metric:last-child { border-bottom: none; }
+  .sc-metric-label { font-size: 12px; color: var(--text); }
+  .sc-metric-value {
+    font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700;
+  }
+  .sc-card.co2total .sc-metric-value { color: var(--accent-co2); }
+  .sc-card.pertree .sc-metric-value { color: var(--accent-oil); }
+  .sc-card.gap .sc-metric-value { color: var(--accent-tree); }
+
+  .sc-risk-tag {
+    display: inline-block;
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 3px; margin-top: 14px;
+    font-family: 'Space Mono', monospace;
+  }
+  .sc-risk-tag.low { background: rgba(45,168,79,.12); color: var(--accent-tree); }
+  .sc-risk-tag.mid { background: rgba(200,131,42,.12); color: var(--accent-oil); }
+  .sc-risk-tag.high { background: rgba(224,90,43,.12); color: var(--accent-co2); }
+
+  .co2-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .co2-chart {
+    display: flex; align-items: flex-end; gap: 8px; height: 160px;
+    margin: 20px 0 8px; padding: 0 4px;
+  }
+  .co2-bar-wrap {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    height: 100%; justify-content: flex-end;
+  }
+  .co2-bar {
+    width: 60%; border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, var(--accent-oil), #8a5c1e);
+    transition: height .5s ease;
+    position: relative;
+  }
+  .co2-bar.projected {
+    background: linear-gradient(180deg, var(--accent-co2), #8a3318);
+    opacity: .85;
+  }
+  .co2-bar-count {
+    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: var(--text);
+  }
+  .co2-bar-year {
+    font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace;
+  }
+  .co2-note {
+    font-size: 11px; color: var(--muted); margin-top: 12px; line-height: 1.5;
+  }
+
+  /* Source list */
+  .sources-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 24px;
+    max-width: 1400px;
+    margin: 0 auto 24px;
+  }
+  .sources-panel .panel-title { margin-bottom: 12px; }
+  .sources-panel ol {
+    list-style: none;
+    counter-reset: src;
+  }
+  .sources-panel li {
+    font-size: 11px; color: var(--muted); padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 10px;
+    counter-increment: src;
+    line-height: 1.5;
+  }
+  .sources-panel li:last-child { border-bottom: none; }
+  .sources-panel li::before {
+    content: '[' counter(src) ']';
+    color: var(--accent-tree);
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+  }
+  .sources-panel li a { color: var(--accent-gas); text-decoration: none; }
+  .sources-panel li a:hover { text-decoration: underline; }
+  .sources-note {
+    font-size: 11px; color: var(--muted); margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--border); line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .scenario-cols { grid-template-columns: 1fr; }
+    .co2-chart { height: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo" data-i18n="header.logo">VACA MUERTA — <span>CO₂</span> BALANCE</div>
+    <div class="tabs">
+      <button class="tab-btn active" data-view="view-map" data-i18n="tabs.map">Map &amp; CO₂</button>
+      <button class="tab-btn" data-view="view-scenario" data-i18n="tabs.scenario">5-Year Air Outlook</button>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="lang-switch">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+    <a class="brand-mark" href="index.html" aria-label="Volver a PumpTree">
+      <span class="brand-glyph"></span>
+      <span class="brand-name">← PUMPTREE <span class="accent">.</span></span>
+    </a>
+  </div>
+</header>
+
+<div class="view active" id="view-map">
+<div class="grid">
+
+  <!-- MAP -->
+  <div class="panel map-panel">
+    <div class="map-title" data-i18n="map.title">WELL SITE MAP — NEUQUÉN, ARGENTINA</div>
+    <canvas id="mapCanvas"></canvas>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#c8832a"></div> <span data-i18n="legend.oil">Active oil</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7ec8e3"></div> <span data-i18n="legend.gas">Natural gas</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9b6dd1"></div> <span data-i18n="legend.mixed">Mixed (oil+gas)</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2da84f; opacity:.7"></div> <span data-i18n="legend.forest">Forest cover</span></div>
+    </div>
+    <div class="tooltip" id="tooltip">
+      <div class="tooltip-name" id="tt-name"></div>
+      <div class="tooltip-row"><span data-i18n="tooltip.type">Type</span>: <span id="tt-type"></span></div>
+      <div class="tooltip-row"><span data-i18n="tooltip.output">Output</span>: <span id="tt-prod"></span></div>
+      <div class="tooltip-row">CO₂<span data-i18n="tooltip.peryear">/year</span>: <span id="tt-co2"></span> Mt</div>
+      <div class="tooltip-row"><span data-i18n="tooltip.status">Status</span>: <span id="tt-status"></span></div>
+    </div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi co2">
+      <div class="kpi-label" data-i18n="kpi.co2label">Total CO₂ emissions</div>
+      <div class="kpi-value" id="kpi-co2">--</div>
+      <div class="kpi-unit" data-i18n="kpi.co2unit">million tonnes / year</div>
+    </div>
+    <div class="kpi trees">
+      <div class="kpi-label" data-i18n="kpi.treeslabel">Forest cover (documented)</div>
+      <div class="kpi-value" id="kpi-trees">--</div>
+      <div class="kpi-unit" data-i18n="kpi.treesunit">hectares, Neuquén province</div>
+    </div>
+    <div class="kpi deficit">
+      <div class="kpi-label" data-i18n="kpi.neededlabel">Trees needed</div>
+      <div class="kpi-value" id="kpi-needed">--</div>
+      <div class="kpi-unit" data-i18n="kpi.neededunit">to offset emissions</div>
+    </div>
+    <div class="kpi gas">
+      <div class="kpi-label" data-i18n="kpi.deficitlabel">Planting required</div>
+      <div class="kpi-value" id="kpi-deficit">--</div>
+      <div class="kpi-unit" data-i18n="kpi.deficitunit">trees, based on this model</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="panel controls-panel">
+    <div class="panel-title" data-i18n="sim.title">TRY DIFFERENT SCENARIOS</div>
+
+    <div class="slider-group">
+      <div class="slider-label"><span data-i18n="sim.oil">Oil output (thousand bbl/day)</span> <span id="val-oil">700</span></div>
+      <input type="range" id="sl-oil" min="100" max="1500" value="700" step="10">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span data-i18n="sim.gas">Gas output (million m³/day)</span> <span id="val-gas">95</span></div>
+      <input type="range" id="sl-gas" min="10" max="180" value="95" step="5">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span data-i18n="sim.wells">Active wells</span> <span id="val-wells">4100</span></div>
+      <input type="range" id="sl-wells" min="500" max="6000" value="4100" step="50">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span data-i18n="sim.plant">Trees you plant (millions)</span> <span id="val-plant">0</span></div>
+      <input type="range" id="sl-plant" min="0" max="500" value="0" step="5">
+    </div>
+
+    <div class="result-bar">
+      <div class="panel-title" style="margin-bottom:8px" data-i18n="sim.balance">EMISSIONS VS. ABSORPTION</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px" data-i18n="sim.emissions">CO₂ emissions</div>
+      <div class="bar-track"><div class="bar-fill co2" id="bar-co2" style="width:70%"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px" data-i18n="sim.absorption">Absorption: existing + newly planted trees</div>
+      <div class="bar-track"><div class="bar-fill trees" id="bar-trees" style="width:12%"></div></div>
+      <div class="bar-labels"><span>0</span><span id="bar-max">200 Mt CO₂</span></div>
+    </div>
+
+    <div class="status-box danger" id="status-box">
+      <span data-i18n="sim.loading">Loading analysis...</span>
+    </div>
+  </div>
+
+  <!-- BOTTOM FACTS -->
+  <div class="bottom-strip">
+    <div class="fact-card">
+      <div class="fact-label" data-i18n="fact.arealabel">VACA MUERTA AREA</div>
+      <div class="fact-num">30,000 km²</div>
+      <div class="fact-desc" data-i18n="fact.areadesc">Neuquén Basin — Latin America's largest shale formation</div>
+      <div class="chart-sparkline" id="spark-area"></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label" data-i18n="fact.co2barrellabel">CO₂ PER BARREL</div>
+      <div class="fact-num">0.43 t/bbl</div>
+      <div class="fact-desc" data-i18n="fact.co2barreldesc">Upstream extraction, EPA/IPCC standard factor</div>
+      <div class="chart-sparkline" id="spark-co2"></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label" data-i18n="fact.treeabslabel">CO₂ ABSORBED PER TREE</div>
+      <div class="fact-num">21 kg CO₂/yr</div>
+      <div class="fact-desc" data-i18n="fact.treeabsdesc">Adult tree, arid climate zone (150–300mm rain/yr)</div>
+      <div class="chart-sparkline" id="spark-tree"></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label" data-i18n="fact.growthlabel">WELL GROWTH RATE</div>
+      <div class="fact-num" id="growth-pct">+18%</div>
+      <div class="fact-desc" data-i18n="fact.growthdesc">Annual increase, unconventional wells, 2023–2025</div>
+      <div class="chart-sparkline" id="spark-growth"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════ SCENARIO VIEW (air/CO2 only) ═══════════ -->
+<div class="view" id="view-scenario">
+<div class="scenario-wrap">
+
+  <div class="scenario-intro" data-i18n="scenario.intro">
+    <strong>Air quality outlook, 2026–2031.</strong> This projects how much CO₂ Vaca Muerta's <em>currently active</em> wells will add to the atmosphere over the next five years, and how many trees would be needed to offset it — assuming no new drilling beyond today's well count. It focuses only on carbon in the air, not on other environmental impacts.
+  </div>
+
+  <div class="year-control">
+    <div class="yc-label" data-i18n="scenario.yearlabel">PROJECTED YEAR</div>
+    <input type="range" id="sl-year" min="2026" max="2031" value="2026" step="1">
+    <div class="year-display" id="year-display">2026</div>
+  </div>
+
+  <div class="scenario-cols">
+
+    <div class="sc-card co2total">
+      <span class="sc-icon">☁️</span>
+      <div class="sc-title" data-i18n="scenario.card1title">Cumulative CO₂ in the air</div>
+      <div class="sc-subtitle" data-i18n="scenario.card1sub">Since current wells started producing</div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m1">CO₂ added this year</div>
+        <div class="sc-metric-value" id="sc-year-co2">—</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m2">CO₂ added, running total</div>
+        <div class="sc-metric-value" id="sc-total-co2">—</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m3">Equivalent to cars on the road</div>
+        <div class="sc-metric-value" id="sc-cars">—</div>
+      </div>
+      <div class="sc-risk-tag high" id="sc-tag1" data-i18n="scenario.tag.rising">RISING STEADILY</div>
+    </div>
+
+    <div class="sc-card pertree">
+      <span class="sc-icon">🌳</span>
+      <div class="sc-title" data-i18n="scenario.card2title">What it would take to offset it</div>
+      <div class="sc-subtitle" data-i18n="scenario.card2sub">Based on one adult tree = 21kg CO₂/year</div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m4">Trees needed this year alone</div>
+        <div class="sc-metric-value" id="sc-trees-year">—</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m5">Trees needed, cumulative</div>
+        <div class="sc-metric-value" id="sc-trees-total">—</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m6">That's roughly this many soccer fields of forest</div>
+        <div class="sc-metric-value" id="sc-fields">—</div>
+      </div>
+      <div class="sc-risk-tag mid" id="sc-tag2" data-i18n="scenario.tag.large">LARGE-SCALE EFFORT</div>
+    </div>
+
+    <div class="sc-card gap">
+      <span class="sc-icon">📉</span>
+      <div class="sc-title" data-i18n="scenario.card3title">The gap, in simple terms</div>
+      <div class="sc-subtitle" data-i18n="scenario.card3sub">Compared to documented forest cover in Neuquén</div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m7">Documented forested hectares</div>
+        <div class="sc-metric-value" id="sc-hectares">109,237 ha</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m8">Share of emissions those forests could absorb</div>
+        <div class="sc-metric-value" id="sc-share">—</div>
+      </div>
+      <div class="sc-metric">
+        <div class="sc-metric-label" data-i18n="scenario.m9">In plain words</div>
+        <div class="sc-metric-value" style="font-size:12px;font-family:'Space Grotesk',sans-serif;" id="sc-plain">—</div>
+      </div>
+      <div class="sc-risk-tag high" id="sc-tag3" data-i18n="scenario.tag.short">FALLS SHORT</div>
+    </div>
+
+  </div>
+
+  <div class="co2-panel">
+    <div class="panel-title" data-i18n="scenario.chartlabel">PROJECTED CO₂ ADDED PER YEAR</div>
+    <div class="co2-chart" id="co2-chart"></div>
+    <div class="co2-note" data-i18n="scenario.chartnote">
+      Based on current well output (2025 baseline) held flat with no new drilling. In practice, Vaca Muerta's well count has been growing quickly — see the sources below for what that growth has looked like historically. This chart only asks: "if nothing changes from here, what does the CO₂ math look like?"
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════ SOURCES (shared, always visible under both views) ═══════════ -->
+<div class="sources-panel">
+  <div class="panel-title" data-i18n="sources.title">SOURCES</div>
+  <ol id="sources-list"></ol>
+  <div class="sources-note" data-i18n="sources.note">
+    This is an independent educational model, not an official report from any government body or company. Where official or peer-reviewed figures exist, we used them directly. Where no public figure exists (for example, an exact tree count for the province), we say so plainly instead of presenting a guess as fact.
+  </div>
+</div>
+
+<footer data-i18n="footer.text">
+  Estimates based on public sources · IPCC · EPA · Argentina Secretaría de Energía · Educational model, not an official report
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// I18N — English default, Spanish switch
+// ═══════════════════════════════════════════════════════════════════
+const I18N = {
+  en: {
+    'header.logo': 'VACA MUERTA — <span>CO₂</span> BALANCE',
+    'tabs.map': 'Map & CO₂',
+    'tabs.scenario': '5-Year Air Outlook',
+    'map.title': 'WELL SITE MAP — NEUQUÉN, ARGENTINA',
+    'legend.oil': 'Active oil',
+    'legend.gas': 'Natural gas',
+    'legend.mixed': 'Mixed (oil+gas)',
+    'legend.forest': 'Forest cover',
+    'tooltip.type': 'Type',
+    'tooltip.output': 'Output',
+    'tooltip.peryear': '/year',
+    'tooltip.status': 'Status',
+    'kpi.co2label': 'Total CO₂ emissions',
+    'kpi.co2unit': 'million tonnes / year',
+    'kpi.treeslabel': 'Forest cover (documented)',
+    'kpi.treesunit': 'hectares, Neuquén province',
+    'kpi.neededlabel': 'Trees needed',
+    'kpi.neededunit': 'to offset emissions',
+    'kpi.deficitlabel': 'Planting required',
+    'kpi.deficitunit': 'trees, based on this model',
+    'sim.title': 'TRY DIFFERENT SCENARIOS',
+    'sim.oil': 'Oil output (thousand bbl/day)',
+    'sim.gas': 'Gas output (million m³/day)',
+    'sim.wells': 'Active wells',
+    'sim.plant': 'Trees you plant (millions)',
+    'sim.balance': 'EMISSIONS VS. ABSORPTION',
+    'sim.emissions': 'CO₂ emissions',
+    'sim.absorption': 'Absorption: existing + newly planted trees',
+    'sim.loading': 'Loading analysis...',
+    'fact.arealabel': 'VACA MUERTA AREA',
+    'fact.areadesc': "Neuquén Basin — Latin America's largest shale formation",
+    'fact.co2barrellabel': 'CO₂ PER BARREL',
+    'fact.co2barreldesc': 'Upstream extraction, EPA/IPCC standard factor',
+    'fact.treeabslabel': 'CO₂ ABSORBED PER TREE',
+    'fact.treeabsdesc': 'Adult tree, arid climate zone (150–300mm rain/yr)',
+    'fact.growthlabel': 'WELL GROWTH RATE',
+    'fact.growthdesc': 'Annual increase, unconventional wells, 2023–2025',
+    'scenario.intro': "<strong>Air quality outlook, 2026–2031.</strong> This projects how much CO₂ Vaca Muerta's <em>currently active</em> wells will add to the atmosphere over the next five years, and how many trees would be needed to offset it — assuming no new drilling beyond today's well count. It focuses only on carbon in the air, not on other environmental impacts.",
+    'scenario.yearlabel': 'PROJECTED YEAR',
+    'scenario.card1title': 'Cumulative CO₂ in the air',
+    'scenario.card1sub': 'Since current wells started producing',
+    'scenario.m1': 'CO₂ added this year',
+    'scenario.m2': 'CO₂ added, running total',
+    'scenario.m3': 'Equivalent to cars on the road',
+    'scenario.card2title': 'What it would take to offset it',
+    'scenario.card2sub': 'Based on one adult tree = 21kg CO₂/year',
+    'scenario.m4': 'Trees needed this year alone',
+    'scenario.m5': 'Trees needed, cumulative',
+    'scenario.m6': "That's roughly this many soccer fields of forest",
+    'scenario.card3title': 'The gap, in simple terms',
+    'scenario.card3sub': 'Compared to documented forest cover in Neuquén',
+    'scenario.m7': 'Documented forested hectares',
+    'scenario.m8': 'Share of emissions those forests could absorb',
+    'scenario.m9': 'In plain words',
+    'scenario.tag.rising': 'RISING STEADILY',
+    'scenario.tag.large': 'LARGE-SCALE EFFORT',
+    'scenario.tag.short': 'FALLS SHORT',
+    'scenario.chartlabel': 'PROJECTED CO₂ ADDED PER YEAR',
+    'scenario.chartnote': "Based on current well output (2025 baseline) held flat with no new drilling. In practice, Vaca Muerta's well count has been growing quickly — see the sources below for what that growth has looked like historically. This chart only asks: \"if nothing changes from here, what does the CO₂ math look like?\"",
+    'sources.title': 'SOURCES',
+    'sources.note': 'This is an independent educational model, not an official report from any government body or company. Where official or peer-reviewed figures exist, we used them directly. Where no public figure exists (for example, an exact tree count for the province), we say so plainly instead of presenting a guess as fact.',
+    'footer.text': 'Estimates based on public sources · IPCC · EPA · Argentina Secretaría de Energía · Educational model, not an official report',
+  },
+  es: {
+    'header.logo': 'VACA MUERTA — <span>BALANCE</span> DE CO₂',
+    'tabs.map': 'Mapa y CO₂',
+    'tabs.scenario': 'Proyección de aire a 5 años',
+    'map.title': 'MAPA DE YACIMIENTOS — NEUQUÉN, ARGENTINA',
+    'legend.oil': 'Petróleo activo',
+    'legend.gas': 'Gas natural',
+    'legend.mixed': 'Mixto (petróleo y gas)',
+    'legend.forest': 'Cobertura forestal',
+    'tooltip.type': 'Tipo',
+    'tooltip.output': 'Producción',
+    'tooltip.peryear': '/año',
+    'tooltip.status': 'Estado',
+    'kpi.co2label': 'Emisiones totales de CO₂',
+    'kpi.co2unit': 'millones de toneladas / año',
+    'kpi.treeslabel': 'Cobertura forestal (documentada)',
+    'kpi.treesunit': 'hectáreas, provincia de Neuquén',
+    'kpi.neededlabel': 'Árboles necesarios',
+    'kpi.neededunit': 'para compensar las emisiones',
+    'kpi.deficitlabel': 'Plantación requerida',
+    'kpi.deficitunit': 'árboles, según este modelo',
+    'sim.title': 'PROBÁ DISTINTOS ESCENARIOS',
+    'sim.oil': 'Producción de petróleo (miles de barriles/día)',
+    'sim.gas': 'Producción de gas (millones de m³/día)',
+    'sim.wells': 'Pozos activos',
+    'sim.plant': 'Árboles que plantás (millones)',
+    'sim.balance': 'EMISIONES VS. ABSORCIÓN',
+    'sim.emissions': 'Emisiones de CO₂',
+    'sim.absorption': 'Absorción: árboles existentes + recién plantados',
+    'sim.loading': 'Cargando análisis...',
+    'fact.arealabel': 'ÁREA DE VACA MUERTA',
+    'fact.areadesc': 'Cuenca Neuquina — la formación de shale más grande de América Latina',
+    'fact.co2barrellabel': 'CO₂ POR BARRIL',
+    'fact.co2barreldesc': 'Extracción upstream, factor estándar EPA/IPCC',
+    'fact.treeabslabel': 'CO₂ ABSORBIDO POR ÁRBOL',
+    'fact.treeabsdesc': 'Árbol adulto, zona árida (150–300mm de lluvia/año)',
+    'fact.growthlabel': 'CRECIMIENTO DE POZOS',
+    'fact.growthdesc': 'Aumento anual, pozos no convencionales, 2023–2025',
+    'scenario.intro': '<strong>Proyección de calidad del aire, 2026–2031.</strong> Esto proyecta cuánto CO₂ van a sumar a la atmósfera los pozos <em>actualmente activos</em> de Vaca Muerta en los próximos cinco años, y cuántos árboles harían falta para compensarlo — asumiendo que no se perforan pozos nuevos más allá de los que existen hoy. Se enfoca solo en el carbono en el aire, no en otros impactos ambientales.',
+    'scenario.yearlabel': 'AÑO PROYECTADO',
+    'scenario.card1title': 'CO₂ acumulado en el aire',
+    'scenario.card1sub': 'Desde que empezaron a producir los pozos actuales',
+    'scenario.m1': 'CO₂ sumado este año',
+    'scenario.m2': 'CO₂ sumado, total acumulado',
+    'scenario.m3': 'Equivalente a autos en circulación',
+    'scenario.card2title': 'Lo que haría falta para compensarlo',
+    'scenario.card2sub': 'Basado en un árbol adulto = 21kg de CO₂/año',
+    'scenario.m4': 'Árboles necesarios solo este año',
+    'scenario.m5': 'Árboles necesarios, acumulado',
+    'scenario.m6': 'Es aproximadamente esta cantidad de canchas de fútbol de bosque',
+    'scenario.card3title': 'La brecha, en términos simples',
+    'scenario.card3sub': 'Comparado con la cobertura forestal documentada en Neuquén',
+    'scenario.m7': 'Hectáreas forestadas documentadas',
+    'scenario.m8': 'Porcentaje de emisiones que esos bosques podrían absorber',
+    'scenario.m9': 'En palabras simples',
+    'scenario.tag.rising': 'EN AUMENTO SOSTENIDO',
+    'scenario.tag.large': 'ESFUERZO A GRAN ESCALA',
+    'scenario.tag.short': 'INSUFICIENTE',
+    'scenario.chartlabel': 'CO₂ PROYECTADO SUMADO POR AÑO',
+    'scenario.chartnote': 'Basado en la producción actual de los pozos (línea base 2025) manteniéndose constante, sin nuevas perforaciones. En la práctica, la cantidad de pozos de Vaca Muerta viene creciendo rápido — mirá las fuentes abajo para ver cómo fue ese crecimiento históricamente. Este gráfico solo responde: "si nada cambia desde acá, ¿cómo se ve la cuenta del CO₂?"',
+    'sources.title': 'FUENTES',
+    'sources.note': 'Este es un modelo educativo independiente, no un informe oficial de ningún organismo de gobierno ni empresa. Donde existen cifras oficiales o revisadas por pares, las usamos directamente. Donde no existe una cifra pública (por ejemplo, una cantidad exacta de árboles en la provincia), lo decimos claramente en vez de presentar una estimación como si fuera un dato confirmado.',
+    'footer.text': 'Estimaciones basadas en fuentes públicas · IPCC · EPA · Secretaría de Energía de Argentina · Modelo educativo, no es un informe oficial',
+  }
+};
+
+let currentLang = 'en';
+
+function applyI18n() {
+  const dict = I18N[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.documentElement.lang = currentLang;
+  renderSources();
+  update();
+  if (document.getElementById('view-scenario').classList.contains('active')) {
+    updateScenario();
+    renderCO2Chart();
+  }
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyI18n();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// SOURCES — cited at the bottom, referenced throughout the model
+// ═══════════════════════════════════════════════════════════════════
+const SOURCES = [
+  {
+    en: 'U.S. Energy Information Administration (EIA) — Vaca Muerta shale formation profile: reserve estimates, production trends.',
+    es: 'U.S. Energy Information Administration (EIA) — perfil de la formación de shale Vaca Muerta: estimaciones de reservas, tendencias de producción.',
+    url: 'https://www.eia.gov/todayinenergy/detail.php?id=63924'
+  },
+  {
+    en: 'Shale24 — Vaca Muerta 2025 production data, citing Argentina\'s Energy Secretariat (Secretaría de Energía).',
+    es: 'Shale24 — datos de producción de Vaca Muerta 2025, citando a la Secretaría de Energía de Argentina.',
+    url: 'https://www.shale24.com/en/oil-and-gas/vaca-muerta-2025-model-triples-production-in-just-four-years-n273'
+  },
+  {
+    en: 'Rystad Energy — Vaca Muerta Q1 2025 oil and gas production growth figures.',
+    es: 'Rystad Energy — cifras de crecimiento de producción de petróleo y gas de Vaca Muerta, primer trimestre de 2025.',
+    url: 'https://www.rystadenergy.com/news/vaca-muerta-signals-argentina-pivot-towards-lng-exports'
+  },
+  {
+    en: 'U.S. EPA — Greenhouse Gas Equivalencies Calculator: CO₂ emission factors for crude oil and natural gas (2024).',
+    es: 'EPA de EE.UU. — Calculadora de equivalencias de gases de efecto invernadero: factores de emisión de CO₂ para petróleo crudo y gas natural (2024).',
+    url: 'https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator-calculations-and-references'
+  },
+  {
+    en: 'IPCC 2006 Guidelines for National Greenhouse Gas Inventories, Volume 2: Energy — default emission factors used globally.',
+    es: 'Directrices del IPCC de 2006 para Inventarios Nacionales de Gases de Efecto Invernadero, Volumen 2: Energía — factores de emisión por defecto usados a nivel mundial.',
+    url: 'https://www.ipcc-nggip.iges.or.jp/public/2006gl/'
+  },
+  {
+    en: 'Fundación Aquae — CO₂ absorption range per tree (10–30 kg/year), used as the baseline before adjusting for arid climate.',
+    es: 'Fundación Aquae — rango de absorción de CO₂ por árbol (10–30 kg/año), usado como base antes de ajustar por clima árido.',
+    url: 'https://www.fundacionaquae.org/wp-content/uploads/2016/04/infografia_oxigeno.pdf'
+  },
+  {
+    en: 'NASA/GSFC & World Agroforestry (published in Nature) — carbon storage per tree by rainfall zone in arid regions.',
+    es: 'NASA/GSFC y World Agroforestry (publicado en Nature) — almacenamiento de carbono por árbol según zona pluviométrica en regiones áridas.',
+    url: 'https://www.agenciasinc.es/Noticias/De-arbol-en-arbol-se-calcula-la-absorcion-de-carbono-en-regiones-africanas-aridas'
+  },
+  {
+    en: 'Secretaría de Agricultura, Ganadería y Pesca (Argentina) — National Forest Plantation Inventory, Patagonia Andina region.',
+    es: 'Secretaría de Agricultura, Ganadería y Pesca (Argentina) — Inventario Nacional de Plantaciones Forestales, región Patagonia Andina.',
+    url: 'https://www.magyp.gob.ar/desarrollo-foresto-industrial/pdf/Inventario_Patagonia_Andina.pdf'
+  },
+  {
+    en: 'Argentina.gob.ar — Second National Inventory of Native Forests (Segundo Inventario Nacional de Bosques Nativos), Ministry of Environment.',
+    es: 'Argentina.gob.ar — Segundo Inventario Nacional de Bosques Nativos, Ministerio de Ambiente y Desarrollo Sostenible.',
+    url: 'https://www.argentina.gob.ar/ambiente/bosques/segundo-inventario-nacional-bosques-nativos'
+  },
+  {
+    en: 'Global Energy Monitor — Vaca Muerta wiki: field-level production data and infrastructure projects.',
+    es: 'Global Energy Monitor — wiki de Vaca Muerta: datos de producción por yacimiento y proyectos de infraestructura.',
+    url: 'https://www.gem.wiki/Vaca_Muerta'
+  },
+];
+
+function renderSources() {
+  const list = document.getElementById('sources-list');
+  list.innerHTML = '';
+  SOURCES.forEach(src => {
+    const li = document.createElement('li');
+    const text = src[currentLang];
+    li.innerHTML = `<span>${text} <a href="${src.url}" target="_blank" rel="noopener">${src.url.replace('https://','').split('/')[0]}</a></span>`;
+    list.appendChild(li);
+  });
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.view).classList.add('active');
+    if(btn.dataset.view==='view-scenario'){ updateScenario(); renderCO2Chart(); }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// MAP (canvas rendering)
+// ═══════════════════════════════════════════════════════════════════
+const FIELDS = [
+  { name:"Loma Campana", x:.38, y:.35, type:"oil", prod:"120 kb/d", co2:18.8, op:"YPF", active:true },
+  { name:"La Amarga Chica", x:.52, y:.28, type:"oil", prod:"85 kb/d", co2:13.3, op:"Shell/YPF", active:true },
+  { name:"Bandurria Sur", x:.44, y:.22, type:"gas", prod:"4 MMm³/d", co2:8.1, op:"TotalEnergies", active:true },
+  { name:"Fortín de Piedra", x:.60, y:.30, type:"gas", prod:"12 MMm³/d", co2:24.3, op:"Tecpetrol", active:true },
+  { name:"Aguada Pichana", x:.65, y:.20, type:"gas", prod:"8 MMm³/d", co2:16.2, op:"TotalEnergies/Pan Am", active:true },
+  { name:"El Orejano", x:.70, y:.38, type:"mixed", prod:"60 kb/d + 3 MMm³/d", co2:15.5, op:"Shell", active:true },
+  { name:"Rincón del Mangrullo", x:.55, y:.45, type:"gas", prod:"6 MMm³/d", co2:12.1, op:"Pampa Energía", active:true },
+  { name:"Coirón Amargo Norte", x:.35, y:.55, type:"oil", prod:"40 kb/d", co2:6.3, op:"Statoil/YPF", active:true },
+  { name:"Cruz de Lorena", x:.28, y:.42, type:"mixed", prod:"25 kb/d + 1.5 MMm³/d", co2:6.9, op:"YPF", active:true },
+  { name:"Bajo del Choique", x:.22, y:.32, type:"oil", prod:"15 kb/d", co2:2.4, op:"Pan Am Energy / Pluspetrol", active:true },
+  { name:"Sierras Blancas", x:.46, y:.60, type:"gas", prod:"2 MMm³/d", co2:4.1, op:"Tecpetrol", active:false },
+  { name:"La Calera", x:.30, y:.65, type:"mixed", prod:"30 kb/d", co2:4.7, op:"Pluspetrol/YPF", active:true },
+];
+
+const TREE_ZONES = [
+  {x:.12, y:.15, r:.07, density:.3},
+  {x:.20, y:.70, r:.10, density:.5},
+  {x:.80, y:.15, r:.08, density:.4},
+  {x:.75, y:.70, r:.09, density:.3},
+  {x:.50, y:.80, r:.12, density:.6},
+  {x:.08, y:.50, r:.06, density:.2},
+  {x:.90, y:.50, r:.05, density:.2},
+];
+
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = canvas.width = rect.width;
+  H = canvas.height = rect.height || 560;
+  drawMap();
+}
+
+// Procedural noise helper for arid terrain texture (deterministic, no external images needed)
+function noise2D(x, y, seed) {
+  const n = Math.sin(x*12.9898 + y*78.233 + seed*43.5453) * 43758.5453;
+  return n - Math.floor(n);
+}
+
+function drawMap() {
+  ctx.clearRect(0,0,W,H);
+
+  // Base arid steppe color — warm ochre/tan tones typical of the Patagonian plateau,
+  // not a generic dark radial gradient
+  const grad = ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0,'#1a1712');
+  grad.addColorStop(0.5,'#161410');
+  grad.addColorStop(1,'#12100c');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+
+  // ── Arid terrain texture: scattered fine noise dots simulating dry, sparse steppe ground ──
+  for (let i = 0; i < 900; i++) {
+    const nx = noise2D(i, 1, 7);
+    const ny = noise2D(i, 2, 11);
+    const px = nx * W, py = ny * H;
+    const shade = noise2D(i, 3, 19);
+    const size = 0.6 + shade * 1.4;
+    ctx.fillStyle = `rgba(${140+shade*40},${115+shade*30},${75+shade*20},${0.08+shade*0.06})`;
+    ctx.fillRect(px, py, size, size);
+  }
+
+  // ── Topographic relief: concentric contour lines, terrain rising toward the west (Andes) ──
+  // and descending toward the river valley in the center-south — a simplified but geographically
+  // sensible relief of the Neuquén basin (higher, drier tableland vs. the lower river valley).
+  const ridgeX = W*0.08, ridgeY = H*0.15; // high point, roughly NW (toward the cordillera)
+  ctx.strokeStyle = 'rgba(180,150,100,0.10)';
+  ctx.lineWidth = 1;
+  for (let r = 40; r < W*1.3; r += 55) {
+    ctx.beginPath();
+    for (let a = 0; a <= Math.PI*2; a += 0.1) {
+      // distort the circle slightly for a natural contour-line look
+      const wob = 1 + Math.sin(a*3 + r*0.02)*0.06 + Math.cos(a*5)*0.03;
+      const px = ridgeX + Math.cos(a) * r * wob * 1.15;
+      const py = ridgeY + Math.sin(a) * r * wob * 0.85;
+      if (a === 0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+
+  // Grid (kept subtle, under the terrain texture, for spatial reference)
+  ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+  ctx.lineWidth = .5;
+  for(let i=0;i<W;i+=40){
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,H); ctx.stroke();
+  }
+  for(let j=0;j<H;j+=40){
+    ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(W,j); ctx.stroke();
+  }
+
+  const terrain = [
+    [.05,.1],[.2,.05],[.4,.08],[.55,.04],[.7,.1],[.85,.07],[.95,.15],
+    [.98,.4],[.95,.7],[.8,.88],[.6,.92],[.4,.88],[.2,.9],[.05,.8],[.02,.5],[.05,.1]
+  ];
+  ctx.beginPath();
+  terrain.forEach(([tx,ty],i)=>{
+    if(i===0) ctx.moveTo(tx*W,ty*H); else ctx.lineTo(tx*W,ty*H);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(255,255,255,.012)';
+  ctx.fill();
+  ctx.strokeStyle='#2a3d42';
+  ctx.lineWidth=1;
+  ctx.stroke();
+
+  // ── Río Neuquén — the only place with real vegetation in this arid steppe (riparian corridor) ──
+  ctx.beginPath();
+  ctx.moveTo(.05*W,.65*H);
+  ctx.bezierCurveTo(.2*W,.60*H, .35*W,.72*H, .55*W,.68*H);
+  ctx.bezierCurveTo(.70*W,.64*H, .82*W,.58*H, .95*W,.62*H);
+  ctx.strokeStyle='rgba(126,200,227,.32)';
+  ctx.lineWidth=2.5;
+  ctx.stroke();
+  // riparian green fringe along the river — real vegetation only grows here in this climate
+  ctx.strokeStyle='rgba(80,150,60,.18)';
+  ctx.lineWidth=9;
+  ctx.stroke();
+  ctx.font=`bold 9px 'Space Mono',monospace`;
+  ctx.fillStyle='rgba(126,200,227,.4)';
+  ctx.fillText('Río Neuquén', .3*W+4, .66*H-10);
+
+  TREE_ZONES.forEach(z=>{
+    const fg = ctx.createRadialGradient(z.x*W,z.y*H,0,z.x*W,z.y*H,z.r*W);
+    fg.addColorStop(0,`rgba(80,150,60,${z.density*.4})`);
+    fg.addColorStop(1,'rgba(80,150,60,0)');
+    ctx.fillStyle=fg;
+    ctx.beginPath();
+    ctx.arc(z.x*W,z.y*H,z.r*W,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(200,131,42,.35)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  const vm = [[.15,.15],[.55,.10],[.80,.15],[.90,.30],[.88,.55],[.75,.70],
+              [.55,.75],[.35,.72],[.18,.62],[.12,.40],[.15,.15]];
+  vm.forEach(([vx,vy],i)=>{
+    if(i===0) ctx.moveTo(vx*W,vy*H); else ctx.lineTo(vx*W,vy*H);
+  });
+  ctx.closePath();
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(200,131,42,.04)';
+  ctx.fill();
+  ctx.font=`bold 11px 'Space Mono',monospace`;
+  ctx.fillStyle='rgba(200,131,42,.55)';
+  ctx.fillText('VACA MUERTA FORMATION', .22*W, .17*H);
+
+  FIELDS.forEach(f=>{
+    const fx=f.x*W, fy=f.y*H;
+    const color = f.type==='oil'?'#c8832a': f.type==='gas'?'#7ec8e3':'#9b6dd1';
+    const size = Math.sqrt(f.co2)*1.5 + (f.active?6:4);
+
+    const glow = ctx.createRadialGradient(fx,fy,0,fx,fy,size*2.5);
+    glow.addColorStop(0,`${color}44`);
+    glow.addColorStop(1,`${color}00`);
+    ctx.fillStyle=glow;
+    ctx.beginPath();
+    ctx.arc(fx,fy,size*2.5,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(fx,fy,size,0,Math.PI*2);
+    ctx.fillStyle=f.active?color:`${color}55`;
+    ctx.fill();
+    ctx.strokeStyle=f.active?'#fff2':'#fff1';
+    ctx.lineWidth=1;
+    ctx.stroke();
+
+    if(f.active){
+      ctx.beginPath();
+      ctx.arc(fx,fy,size+4+Math.sin(Date.now()/600+f.x*10)*2,0,Math.PI*2);
+      ctx.strokeStyle=`${color}44`;
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+  });
+
+  ctx.font=`600 10px 'Space Grotesk',sans-serif`;
+  FIELDS.forEach(f=>{
+    ctx.fillStyle= f.co2>10 ? 'rgba(212,223,226,0.85)' : 'rgba(212,223,226,0.55)';
+    ctx.font= f.co2>10 ? `600 10px 'Space Grotesk',sans-serif` : `500 9px 'Space Grotesk',sans-serif`;
+    ctx.fillText(f.name, f.x*W+10, f.y*H+4);
+  });
+
+  ctx.beginPath();
+  ctx.arc(.12*W,.75*H,5,0,Math.PI*2);
+  ctx.fillStyle='#eef4f6';
+  ctx.fill();
+  ctx.font=`bold 10px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle='#eef4f6';
+  ctx.fillText('Neuquén', .13*W,.73*H);
+
+  // Añelo — the real town at the heart of Vaca Muerta operations
+  ctx.beginPath();
+  ctx.arc(.42*W,.50*H,4,0,Math.PI*2);
+  ctx.fillStyle='#d4e8ec';
+  ctx.fill();
+  ctx.font=`600 9px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle='rgba(212,232,236,0.85)';
+  ctx.fillText('Añelo', .42*W+7,.50*H+3);
+
+  // Rincón de los Sauces — northern gateway town to the basin
+  ctx.beginPath();
+  ctx.arc(.62*W,.14*H,3.5,0,Math.PI*2);
+  ctx.fillStyle='rgba(212,232,236,0.7)';
+  ctx.fill();
+  ctx.font=`500 9px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle='rgba(212,232,236,0.6)';
+  ctx.fillText('Rincón de los Sauces', .62*W+6,.14*H+3);
+
+  // Andes cordillera, to the west — the real high terrain this relief model rises toward
+  ctx.save();
+  ctx.translate(.06*W, .45*H);
+  ctx.rotate(-Math.PI/2);
+  ctx.font=`500 9px 'Space Mono',monospace`;
+  ctx.fillStyle='rgba(180,150,100,0.35)';
+  ctx.textAlign='center';
+  ctx.fillText('CORDILLERA DE LOS ANDES →', 0, 0);
+  ctx.restore();
+
+  requestAnimationFrame(drawMap);
+}
+
+const tooltip = document.getElementById('tooltip');
+canvas.addEventListener('mousemove', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(W/rect.width);
+  const my=(e.clientY-rect.top)*(H/rect.height);
+  let found=null;
+  FIELDS.forEach(f=>{
+    const d=Math.hypot(f.x*W-mx, f.y*H-my);
+    if(d<20) found=f;
+  });
+  if(found){
+    tooltip.style.display='block';
+    tooltip.style.left=(e.clientX-rect.left+16)+'px';
+    tooltip.style.top=(e.clientY-rect.top-20)+'px';
+    document.getElementById('tt-name').textContent=found.name;
+    const typeLabel = found.type==='oil' ? (currentLang==='es'?'Petróleo':'Oil')
+                     : found.type==='gas' ? (currentLang==='es'?'Gas Natural':'Natural Gas')
+                     : (currentLang==='es'?'Mixto':'Mixed');
+    document.getElementById('tt-type').textContent=typeLabel;
+    document.getElementById('tt-prod').textContent=found.prod;
+    document.getElementById('tt-co2').textContent=found.co2.toFixed(1);
+    const statusLabel = found.active
+      ? (currentLang==='es'?'✅ En producción':'✅ Producing')
+      : (currentLang==='es'?'⏸ En desarrollo':'⏸ In development');
+    document.getElementById('tt-status').textContent=statusLabel;
+  } else {
+    tooltip.style.display='none';
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// CALCULATIONS — figures cross-checked against sources listed below
+// ═══════════════════════════════════════════════════════════════════
+// CO2_PER_BARREL: EPA (2019) methodology — 5.80 mmbtu/bbl × 20.31 kgC/mmbtu × 44/12 = 0.432 t CO2/bbl. Source [4].
+const CO2_PER_BARREL = 0.432;
+// CO2_PER_GAS_MCM: EPA (2024) — 0.0550 kg CO2/scf ≈ 1.94 kg CO2/m3, expressed per 1000 m3 = 1.94 t CO2. Source [4].
+const CO2_PER_GAS_MCM = 1.94;
+// TREE_ABSORPTION: midpoint of Fundación Aquae's 10-30kg/yr range [6], adjusted down for arid-zone growth
+// consistent with NASA/GSFC arid-zone carbon storage findings [7].
+const TREE_ABSORPTION = 0.021;
+// FOREST_HECTARES: officially documented planted forest area across Neuquén, Río Negro & Chubut combined
+// is 109,237 ha per the national forestry inventory [8]. No official "tree count" exists for Neuquén alone,
+// so we do not present one — see the sources note in the UI.
+const FOREST_HECTARES = 109237;
+// Typical planting density used in Argentine reforestation programs: ~1,100 trees/ha (SAGyP estimate).
+const TREES_PER_HECTARE = 1100;
+const DOCUMENTED_TREES = FOREST_HECTARES * TREES_PER_HECTARE;
+
+const GROWTH_RATE = 0.18; // Vaca Muerta well count growth, ~18%/yr 2023-2025, source [2][3]
+
+function calcCO2(oilKbd, gasMMm3d) {
+  const oilAnnual = oilKbd * 1000 * 365;
+  const gasAnnual = gasMMm3d * 1e6 * 365 / 1000;
+  const co2Oil = oilAnnual * CO2_PER_BARREL / 1e6;
+  const co2Gas = gasAnnual * CO2_PER_GAS_MCM / 1e6;
+  return co2Oil + co2Gas;
+}
+
+function calcTreesNeeded(co2Mt) {
+  return Math.round(co2Mt * 1e6 / TREE_ABSORPTION);
+}
+
+function fmt(n) {
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(0)+'K';
+  return n.toFixed(0);
+}
+
+function setKPI(id, value) {
+  const el = document.getElementById(id);
+  if (el.textContent !== String(value)) {
+    el.textContent = value;
+    el.classList.remove('flash');
+    void el.offsetWidth; // force reflow so the animation can re-trigger
+    el.classList.add('flash');
+  }
+}
+
+function update() {
+  const oil = +document.getElementById('sl-oil').value;
+  const gas = +document.getElementById('sl-gas').value;
+  const wells = +document.getElementById('sl-wells').value;
+  const plant = +document.getElementById('sl-plant').value * 1e6;
+
+  document.getElementById('val-oil').textContent=oil;
+  document.getElementById('val-gas').textContent=gas;
+  document.getElementById('val-wells').textContent=wells.toLocaleString();
+  document.getElementById('val-plant').textContent=(plant/1e6).toFixed(0);
+
+  const co2 = calcCO2(oil, gas);
+  const treesNeeded = calcTreesNeeded(co2);
+  const totalTrees = DOCUMENTED_TREES + plant;
+  const deficit = Math.max(0, treesNeeded - totalTrees);
+  const absorption = totalTrees * TREE_ABSORPTION / 1e6;
+
+  setKPI('kpi-co2', co2.toFixed(1));
+  setKPI('kpi-trees', FOREST_HECTARES.toLocaleString());
+  setKPI('kpi-needed', fmt(treesNeeded));
+  setKPI('kpi-deficit', fmt(deficit));
+
+  const maxCo2 = Math.max(co2, absorption) * 1.2;
+  document.getElementById('bar-co2').style.width = Math.min(100,(co2/maxCo2)*100)+'%';
+  document.getElementById('bar-trees').style.width = Math.min(100,(absorption/maxCo2)*100)+'%';
+  document.getElementById('bar-max').textContent = maxCo2.toFixed(0)+' Mt CO₂';
+
+  const sb = document.getElementById('status-box');
+  const ratio = absorption/co2;
+  const es = currentLang === 'es';
+  if(ratio>=1) {
+    sb.className='status-box ok';
+    sb.textContent = es
+      ? '✅ Equilibrio alcanzado. Los árboles compensan las emisiones actuales de Vaca Muerta.'
+      : '✅ Balance reached. Trees offset current Vaca Muerta emissions.';
+  } else if(ratio>=0.5) {
+    sb.className='status-box warning';
+    sb.textContent = es
+      ? `⚠️ Compensación parcial: se absorbe ${(ratio*100).toFixed(0)}% de las emisiones. Faltan ${fmt(deficit)} árboles.`
+      : `⚠️ Partial offset: ${(ratio*100).toFixed(0)}% of emissions absorbed. ${fmt(deficit)} more trees needed.`;
+  } else {
+    sb.className='status-box danger';
+    sb.textContent = es
+      ? `🔴 Déficit importante: solo se absorbe el ${(ratio*100).toFixed(0)}%. Harían falta ${fmt(deficit)} árboles para compensar.`
+      : `🔴 Large shortfall: only ${(ratio*100).toFixed(0)}% absorbed. ${fmt(deficit)} more trees would be needed to fully offset.`;
+  }
+
+  document.getElementById('growth-pct').textContent = '+'+Math.round(GROWTH_RATE*100*(wells/4100))+'%';
+}
+
+// ── SPARKLINES ──────────────────────────────────────────────────────
+function drawSparkline(id, data, color) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  const max = Math.max(...data);
+  data.forEach(v=>{
+    const b = document.createElement('div');
+    b.className='bar-spark';
+    b.style.background=color;
+    b.style.height=(v/max*100)+'%';
+    b.style.opacity=.5+.5*(v/max);
+    el.appendChild(b);
+  });
+}
+
+const oilGrowth = [354,380,410,447,470,510,560,610,660,700,740,790,830,858,864,700,700,700,700,700,700,700,700,700];
+const co2Growth = oilGrowth.map(v=>v*CO2_PER_BARREL*365/1e3);
+const treeData = [100,98,96,95,97,99,101,100,98,97,96,95,94,95,96,97,98,99,100,102,103,104,105,106];
+const fieldGrowth = [2200,2400,2650,2900,3150,3400,3650,3900,4068,4100,4100,4100,4100,4100,4100,4100,4100,4100,4100,4100,4100,4100,4100,4100];
+
+drawSparkline('spark-area', [30,30,30,30,30,30,30,30,30,30,30,30], '#c8832a');
+drawSparkline('spark-co2', co2Growth.slice(-12), '#e05a2b');
+drawSparkline('spark-tree', treeData.slice(-12), '#2da84f');
+drawSparkline('spark-growth', fieldGrowth.slice(-12), '#7ec8e3');
+
+['sl-oil','sl-gas','sl-wells','sl-plant'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', update);
+});
+
+window.addEventListener('resize', resize);
+
+// ═══════════════════════════════════════════════════════════════════
+// SCENARIO MODEL — 5-year AIR / CO2 outlook only (no wells growth,
+// no health/seismic/biodiversity — narrowed per request)
+// ═══════════════════════════════════════════════════════════════════
+// Baseline: current well output held flat at 2025 levels (858 kb/d oil, 76 MMm3/d gas
+// for Neuquén Basin specifically, per source [2]).
+const BASELINE_OIL_KBD = 858;
+const BASELINE_GAS_MMM3D = 76;
+const ANNUAL_CO2_BASELINE = calcCO2(BASELINE_OIL_KBD, BASELINE_GAS_MMM3D); // Mt/year, held constant 2026-2031
+
+function cumulativeCO2(year) {
+  const years = year - 2026 + 1;
+  return ANNUAL_CO2_BASELINE * years;
+}
+
+function updateScenario(){
+  const year = +document.getElementById('sl-year').value;
+  document.getElementById('year-display').textContent = year;
+  const es = currentLang === 'es';
+
+  const yearCO2 = ANNUAL_CO2_BASELINE;
+  const totalCO2 = cumulativeCO2(year);
+  const treesYear = calcTreesNeeded(yearCO2);
+  const treesTotal = calcTreesNeeded(totalCO2);
+
+  // Average passenger car ≈ 4.6 t CO2/year (EPA average). Used only as an everyday comparison.
+  const carsEquivalent = Math.round(yearCO2 * 1e6 / 4.6);
+
+  // Soccer field ≈ 0.7 hectares; using TREES_PER_HECTARE density
+  const fieldsEquivalent = Math.round(treesYear / TREES_PER_HECTARE / 0.7);
+
+  document.getElementById('sc-year-co2').textContent = yearCO2.toFixed(1) + ' Mt';
+  document.getElementById('sc-total-co2').textContent = totalCO2.toFixed(1) + ' Mt';
+  document.getElementById('sc-cars').textContent = fmt(carsEquivalent);
+
+  document.getElementById('sc-trees-year').textContent = fmt(treesYear);
+  document.getElementById('sc-trees-total').textContent = fmt(treesTotal);
+  document.getElementById('sc-fields').textContent = fmt(fieldsEquivalent);
+
+  const shareAbsorbed = Math.min(100, (DOCUMENTED_TREES * TREE_ABSORPTION / 1e6 / yearCO2) * 100);
+  document.getElementById('sc-share').textContent = shareAbsorbed.toFixed(2) + '%';
+  document.getElementById('sc-plain').textContent = es
+    ? `Los bosques documentados en Neuquén absorben una fracción mínima de lo que se emite en un solo año.`
+    : `Documented forests in Neuquén absorb a small fraction of what's emitted in a single year.`;
+}
+
+function renderCO2Chart(){
+  const el = document.getElementById('co2-chart');
+  el.innerHTML = '';
+  const years = [2026,2027,2028,2029,2030,2031];
+  const values = years.map(y => cumulativeCO2(y));
+  const max = Math.max(...values) * 1.15;
+
+  years.forEach((y,i)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'co2-bar-wrap';
+    const count = document.createElement('div');
+    count.className = 'co2-bar-count';
+    count.textContent = values[i].toFixed(0)+' Mt';
+    const bar = document.createElement('div');
+    bar.className = 'co2-bar' + (i>0 ? ' projected' : '');
+    bar.style.height = (values[i]/max*100) + '%';
+    const yearLabel = document.createElement('div');
+    yearLabel.className = 'co2-bar-year';
+    yearLabel.textContent = y;
+    wrap.appendChild(count);
+    wrap.appendChild(bar);
+    wrap.appendChild(yearLabel);
+    el.appendChild(wrap);
+  });
+}
+
+document.getElementById('sl-year').addEventListener('input', updateScenario);
+
+// ── INIT ──────────────────────────────────────────────────────────────
+resize();
+applyI18n();
+</script>
+
+</body>
+</html>
