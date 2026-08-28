@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Auditoría — PumpTree Vaca Muerta</title>
+<link rel="icon" type="image/webp" href="pumptree-logo.webp">
+<link rel="apple-touch-icon" href="pumptree-logo.webp">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pumptreevm.com/auditoria.html">
+<meta property="og:title" content="Audit — PumpTree Vaca Muerta">
+<meta property="og:description" content="Total transparency: PumpTree's treasury income and expenses, public and verifiable on-chain.">
+<meta property="og:image" content="https://pumptreevm.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Audit — PumpTree Vaca Muerta">
+<meta name="twitter:image" content="https://pumptreevm.com/og-image.png">
 <meta name="description" content="Auditoría pública de PumpTree: ingresos y gastos de la tesorería del proyecto, con transacciones y comprobantes verificables.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;0,18..144,600;1,18..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -342,30 +354,24 @@
       <h2 data-i18n="panelIngresosH">Income</h2>
     </div>
     <div class="audit-table-wrap">
-      <table class="audit-table">
+      <table class="audit-table" id="table-ingresos">
         <thead>
           <tr>
             <th data-i18n="colDate">Date</th>
             <th data-i18n="colAmount">Amount</th>
+            <th data-i18n="colConceptIn">Concept</th>
             <th data-i18n="colHash">Tx hash</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="tbody-ingresos">
           <tr>
-            <td colspan="3">
+            <td colspan="4">
               <div class="audit-empty">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 4v5M16 4v5"/></svg>
                 <p data-i18n="emptyIngresos">No entries recorded yet. This table updates in real time once the treasury wallet is active, with the date, amount and transaction hash of every entry.</p>
               </div>
             </td>
           </tr>
-          <!-- fila de ejemplo para cuando haya datos reales:
-          <tr>
-            <td>2026-08-25</td>
-            <td class="amt">+ 12.4 SOL</td>
-            <td><a class="audit-link" href="https://solscan.io/tx/HASH" target="_blank" rel="noopener">1a2b…9f8e <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
-          </tr>
-          -->
         </tbody>
       </table>
     </div>
@@ -501,6 +507,7 @@
     panelOtrosH: {es:'Otros ingresos', en:'Other income'},
     colDate: {es:'Fecha', en:'Date'},
     colAmount: {es:'Monto', en:'Amount'},
+    colConceptIn: {es:'Concepto', en:'Concept'},
     colHash: {es:'Tx hash', en:'Tx hash'},
     colDetail: {es:'Detalle', en:'Detail'},
     colReceipt: {es:'Comprobante', en:'Receipt'},
@@ -550,6 +557,97 @@
   const initialHash = window.location.hash.replace('#','');
   if(initialHash === 'gastos') showPanel('panel-gastos');
   else if(initialHash === 'otros') showPanel('panel-otros');
+
+  // ══════════════════════════════════════════════════════════════════
+  // INGRESOS AUTOMÁTICOS DE LA WALLET
+  // Fecha, monto y hash se traen solos desde la blockchain.
+  // El "concepto" lo escribís vos acá abajo: agregá una línea por cada
+  // hash con la descripción que quieras que se vea en la tabla.
+  // El hash completo lo sacás del link "Ver en Solscan ↗" de la home,
+  // o de cada fila ya cargada acá (mirá el link de esa fila).
+  // Si un ingreso nuevo aparece sin concepto cargado, muestra un texto
+  // genérico hasta que le agregues la línea correspondiente acá.
+  // ══════════════════════════════════════════════════════════════════
+  const INCOME_CONCEPTS = {
+    // 'HASH_COMPLETO_DE_LA_TRANSACCION': 'Descripción que quieras mostrar',
+  };
+
+  (function(){
+    const tbody = document.getElementById('tbody-ingresos');
+    if(!tbody) return;
+
+    const TREASURY_WALLET = 'GDkZei9e8CuoczpLUcCqTb2UqUymRgGFhhDx5Vwm5tU4';
+    const SOLANA_RPCS = [
+      'https://solana-rpc.publicnode.com',
+      'https://rpc.solanatracker.io/public',
+      'https://api.mainnet-beta.solana.com'
+    ];
+
+    async function rpcCall(url, method, params){
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc:'2.0', id:1, method, params })
+      });
+      const data = await res.json();
+      if(data && 'result' in data) return data.result;
+      throw new Error('respuesta inesperada del RPC');
+    }
+
+    async function withFallback(method, params){
+      for(const url of SOLANA_RPCS){
+        try{ return await rpcCall(url, method, params); }
+        catch(e){ /* probamos el siguiente RPC de la lista */ }
+      }
+      throw new Error('ningún RPC respondió');
+    }
+
+    function short(hash){ return hash.slice(0,4) + '…' + hash.slice(-4); }
+    function fmtDate(unixSeconds){
+      const d = new Date(unixSeconds * 1000);
+      return d.toISOString().slice(0,10);
+    }
+
+    async function loadIncome(){
+      try{
+        const sigs = await withFallback('getSignaturesForAddress', [TREASURY_WALLET, { limit: 12 }]);
+        if(!sigs || !sigs.length) return;
+
+        const rows = [];
+        for(const s of sigs){
+          try{
+            const tx = await withFallback('getTransaction', [s.signature, { maxSupportedTransactionVersion: 0 }]);
+            if(!tx || !tx.meta) continue;
+            const keys = tx.transaction.message.accountKeys.map(k => typeof k === 'string' ? k : k.pubkey);
+            const idx = keys.indexOf(TREASURY_WALLET);
+            if(idx === -1) continue;
+            const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
+            if(delta <= 0) continue; // solo nos interesan los ingresos acá
+            rows.push({
+              date: fmtDate(tx.blockTime || s.blockTime),
+              amount: delta,
+              hash: s.signature
+            });
+          } catch(e){ /* si una tx puntual falla, seguimos con las demás */ }
+        }
+
+        if(!rows.length) return; // no se encontraron ingresos: se queda el estado vacío
+
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td>${r.date}</td>
+            <td class="amt">+ ${r.amount.toFixed(4)} SOL</td>
+            <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Ingreso a la wallet'}</td>
+            <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
+          </tr>
+        `).join('');
+      } catch(e){
+        // sin conexión o los 3 RPC caídos: se queda el estado vacío default, no rompe nada
+      }
+    }
+
+    loadIncome();
+  })();
 
   // scroll reveal
   const revealEls = document.querySelectorAll('.reveal');
