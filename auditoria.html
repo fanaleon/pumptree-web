@@ -559,17 +559,24 @@
   else if(initialHash === 'otros') showPanel('panel-otros');
 
   // ══════════════════════════════════════════════════════════════════
-  // INGRESOS AUTOMÁTICOS DE LA WALLET
-  // Fecha, monto y hash se traen solos desde la blockchain.
-  // El "concepto" lo escribís vos acá abajo: agregá una línea por cada
-  // hash con la descripción que quieras que se vea en la tabla.
-  // El hash completo lo sacás del link "Ver en Solscan ↗" de la home,
-  // o de cada fila ya cargada acá (mirá el link de esa fila).
-  // Si un ingreso nuevo aparece sin concepto cargado, muestra un texto
-  // genérico hasta que le agregues la línea correspondiente acá.
+  // INGRESOS: cargá el hash, el resto se completa solo
+  //
+  // Los RPC gratuitos no dejan "listar todas las transacciones" de una
+  // wallet automáticamente (eso lo cobran aparte) — pero sí dejan traer
+  // los datos de UNA transacción puntual si le pasás el hash. Por eso
+  // el flujo es: vos agregás el hash + una descripción acá abajo, y el
+  // sitio busca solo la fecha y el monto de esa transacción y arma la
+  // fila completa.
+  //
+  // Cómo agregar un ingreso nuevo:
+  // 1. Andá al historial de la wallet en Solscan y abrí la transacción.
+  // 2. Copiá el hash de la URL (solscan.io/tx/ESTE_HASH_LARGO).
+  // 3. Agregá una línea acá abajo con ese hash y la descripción que
+  //    quieras que se vea en la tabla.
   // ══════════════════════════════════════════════════════════════════
   const INCOME_CONCEPTS = {
     // 'HASH_COMPLETO_DE_LA_TRANSACCION': 'Descripción que quieras mostrar',
+    '2h3ktjKYgc9ky8XShVLpAJ7qURzEMX7S3jWcHN6FdDjaUd6MHaHWYJ5vfFq7HBZyVuvaYCYapxEZ5HEt3zm7wrxR': 'Transferencia desde Lemon Cash',
   };
 
   (function(){
@@ -614,60 +621,54 @@
     }
 
     async function loadIncome(){
-      try{
-        console.log('[PumpTree Auditoría] pidiendo firmas de la wallet…');
-        const sigs = await withFallback('getSignaturesForAddress', [TREASURY_WALLET, { limit: 12 }]);
-        console.log('[PumpTree Auditoría] firmas encontradas:', sigs && sigs.length, sigs);
-        if(!sigs || !sigs.length) return;
+      const hashes = Object.keys(INCOME_CONCEPTS);
+      if(!hashes.length) return; // todavía no cargaste ningún hash: se queda el estado vacío
 
-        const rows = [];
-        for(const s of sigs){
-          try{
-            const tx = await withFallback('getTransaction', [s.signature, { maxSupportedTransactionVersion: 0 }]);
-            if(!tx || !tx.meta){
-              console.log('[PumpTree Auditoría] sin meta para', s.signature);
-              continue;
-            }
-            // las cuentas "estáticas" de la tx, más las que se resuelven vía
-            // address lookup tables (comunes en transacciones más modernas,
-            // como las de Pump.fun) — si no sumamos estas últimas, la wallet
-            // puede no aparecer en la lista y esa fila se pierde en silencio.
-            const staticKeys = tx.transaction.message.accountKeys.map(k => typeof k === 'string' ? k : k.pubkey);
-            const loadedWritable = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.writable) || [];
-            const loadedReadonly = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.readonly) || [];
-            const keys = staticKeys.concat(loadedWritable, loadedReadonly);
-            const idx = keys.indexOf(TREASURY_WALLET);
-            if(idx === -1){
-              console.log('[PumpTree Auditoría] wallet no encontrada en las cuentas de', s.signature, keys);
-              continue;
-            }
-            const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
-            console.log('[PumpTree Auditoría]', s.signature, 'delta:', delta);
-            if(delta <= 0) continue; // solo nos interesan los ingresos acá
-            rows.push({
-              date: fmtDate(tx.blockTime || s.blockTime),
-              amount: delta,
-              hash: s.signature
-            });
-          } catch(e){
-            console.warn('[PumpTree Auditoría] falló procesando', s.signature, e.message || e);
+      const rows = [];
+      for(const hash of hashes){
+        try{
+          const tx = await withFallback('getTransaction', [hash, { maxSupportedTransactionVersion: 0 }]);
+          if(!tx || !tx.meta){
+            console.warn('[PumpTree Auditoría] no encontré esa transacción:', hash);
+            continue;
           }
+          // las cuentas "estáticas" de la tx, más las que se resuelven vía
+          // address lookup tables (comunes en transacciones más modernas,
+          // como las de Pump.fun) — si no sumamos estas últimas, la wallet
+          // puede no aparecer en la lista y esa fila se pierde en silencio.
+          const staticKeys = tx.transaction.message.accountKeys.map(k => typeof k === 'string' ? k : k.pubkey);
+          const loadedWritable = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.writable) || [];
+          const loadedReadonly = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.readonly) || [];
+          const keys = staticKeys.concat(loadedWritable, loadedReadonly);
+          const idx = keys.indexOf(TREASURY_WALLET);
+          if(idx === -1){
+            console.warn('[PumpTree Auditoría] la wallet no aparece en esta tx:', hash);
+            continue;
+          }
+          const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
+          rows.push({
+            date: fmtDate(tx.blockTime),
+            amount: delta,
+            hash: hash
+          });
+        } catch(e){
+          console.warn('[PumpTree Auditoría] falló procesando', hash, e.message || e);
         }
-
-        console.log('[PumpTree Auditoría] filas de ingreso encontradas:', rows);
-        if(!rows.length) return; // no se encontraron ingresos: se queda el estado vacío
-
-        tbody.innerHTML = rows.map(r => `
-          <tr>
-            <td>${r.date}</td>
-            <td class="amt">+ ${r.amount.toFixed(4)} SOL</td>
-            <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Ingreso a la wallet'}</td>
-            <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
-          </tr>
-        `).join('');
-      } catch(e){
-        console.warn('[PumpTree Auditoría] loadIncome falló por completo:', e.message || e);
       }
+
+      if(!rows.length) return; // ninguno de los hashes cargados pudo procesarse
+
+      // más nuevo primero
+      rows.sort((a, b) => b.date.localeCompare(a.date));
+
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.date}</td>
+          <td class="amt">${r.amount >= 0 ? '+' : ''} ${r.amount.toFixed(4)} SOL</td>
+          <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Ingreso a la wallet'}</td>
+          <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
+        </tr>
+      `).join('');
     }
 
     loadIncome();
