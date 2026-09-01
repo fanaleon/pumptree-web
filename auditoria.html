@@ -591,14 +591,19 @@
       });
       const data = await res.json();
       if(data && 'result' in data) return data.result;
-      throw new Error('respuesta inesperada del RPC');
+      if(data && data.error){
+        throw new Error(`${url} rechazó "${method}": ${JSON.stringify(data.error)}`);
+      }
+      throw new Error(`${url}: respuesta inesperada para "${method}"`);
     }
 
     async function withFallback(method, params){
+      const fails = [];
       for(const url of SOLANA_RPCS){
         try{ return await rpcCall(url, method, params); }
-        catch(e){ /* probamos el siguiente RPC de la lista */ }
+        catch(e){ fails.push(e.message || String(e)); }
       }
+      console.warn(`[PumpTree Auditoría] "${method}" falló en los 3 RPC:`, fails);
       throw new Error('ningún RPC respondió');
     }
 
@@ -610,14 +615,19 @@
 
     async function loadIncome(){
       try{
+        console.log('[PumpTree Auditoría] pidiendo firmas de la wallet…');
         const sigs = await withFallback('getSignaturesForAddress', [TREASURY_WALLET, { limit: 12 }]);
+        console.log('[PumpTree Auditoría] firmas encontradas:', sigs && sigs.length, sigs);
         if(!sigs || !sigs.length) return;
 
         const rows = [];
         for(const s of sigs){
           try{
             const tx = await withFallback('getTransaction', [s.signature, { maxSupportedTransactionVersion: 0 }]);
-            if(!tx || !tx.meta) continue;
+            if(!tx || !tx.meta){
+              console.log('[PumpTree Auditoría] sin meta para', s.signature);
+              continue;
+            }
             // las cuentas "estáticas" de la tx, más las que se resuelven vía
             // address lookup tables (comunes en transacciones más modernas,
             // como las de Pump.fun) — si no sumamos estas últimas, la wallet
@@ -627,17 +637,24 @@
             const loadedReadonly = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.readonly) || [];
             const keys = staticKeys.concat(loadedWritable, loadedReadonly);
             const idx = keys.indexOf(TREASURY_WALLET);
-            if(idx === -1) continue;
+            if(idx === -1){
+              console.log('[PumpTree Auditoría] wallet no encontrada en las cuentas de', s.signature, keys);
+              continue;
+            }
             const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
+            console.log('[PumpTree Auditoría]', s.signature, 'delta:', delta);
             if(delta <= 0) continue; // solo nos interesan los ingresos acá
             rows.push({
               date: fmtDate(tx.blockTime || s.blockTime),
               amount: delta,
               hash: s.signature
             });
-          } catch(e){ /* si una tx puntual falla, seguimos con las demás */ }
+          } catch(e){
+            console.warn('[PumpTree Auditoría] falló procesando', s.signature, e.message || e);
+          }
         }
 
+        console.log('[PumpTree Auditoría] filas de ingreso encontradas:', rows);
         if(!rows.length) return; // no se encontraron ingresos: se queda el estado vacío
 
         tbody.innerHTML = rows.map(r => `
@@ -649,7 +666,7 @@
           </tr>
         `).join('');
       } catch(e){
-        // sin conexión o los 3 RPC caídos: se queda el estado vacío default, no rompe nada
+        console.warn('[PumpTree Auditoría] loadIncome falló por completo:', e.message || e);
       }
     }
 
