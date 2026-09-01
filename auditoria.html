@@ -618,7 +618,14 @@
           try{
             const tx = await withFallback('getTransaction', [s.signature, { maxSupportedTransactionVersion: 0 }]);
             if(!tx || !tx.meta) continue;
-            const keys = tx.transaction.message.accountKeys.map(k => typeof k === 'string' ? k : k.pubkey);
+            // las cuentas "estáticas" de la tx, más las que se resuelven vía
+            // address lookup tables (comunes en transacciones más modernas,
+            // como las de Pump.fun) — si no sumamos estas últimas, la wallet
+            // puede no aparecer en la lista y esa fila se pierde en silencio.
+            const staticKeys = tx.transaction.message.accountKeys.map(k => typeof k === 'string' ? k : k.pubkey);
+            const loadedWritable = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.writable) || [];
+            const loadedReadonly = (tx.meta.loadedAddresses && tx.meta.loadedAddresses.readonly) || [];
+            const keys = staticKeys.concat(loadedWritable, loadedReadonly);
             const idx = keys.indexOf(TREASURY_WALLET);
             if(idx === -1) continue;
             const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
