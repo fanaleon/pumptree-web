@@ -487,6 +487,7 @@
   })();
 </script>
 <script>
+  console.log('%c[PumpTree] auditoria.html — build 2026-09-02-B', 'color:#c6ff2e; font-weight:bold; font-size:14px; background:#151210; padding:4px 10px;');
   const i18n = {
     navHome: {es:'PUMPTREE', en:'PUMPTREE'},
     backHome: {es:'← VOLVER AL SITIO', en:'← BACK TO SITE'},
@@ -614,6 +615,26 @@
       throw new Error('ningún RPC respondió');
     }
 
+    // getTransaction necesita su propio fallback: un nodo puede responder
+    // "result: null" (transacción no encontrada, sin ser un error) porque
+    // no guarda historial viejo — eso NO significa que la tx no exista,
+    // solo que ESE nodo no la tiene. Por eso acá seguimos probando los
+    // siguientes RPCs de la lista hasta encontrar uno que sí la tenga.
+    async function getTransactionWithFallback(hash){
+      const attempts = [];
+      for(const url of SOLANA_RPCS){
+        try{
+          const tx = await rpcCall(url, 'getTransaction', [hash, { maxSupportedTransactionVersion: 0 }]);
+          if(tx) return tx;
+          attempts.push(`${url}: no la tiene indexada`);
+        } catch(e){
+          attempts.push(`${url}: ${e.message || e}`);
+        }
+      }
+      console.warn(`[PumpTree Auditoría] ningún RPC tiene la transacción ${hash}:`, attempts);
+      return null;
+    }
+
     function short(hash){ return hash.slice(0,4) + '…' + hash.slice(-4); }
     function fmtDate(unixSeconds){
       const d = new Date(unixSeconds * 1000);
@@ -622,14 +643,15 @@
 
     async function loadIncome(){
       const hashes = Object.keys(INCOME_CONCEPTS);
+      console.log('[PumpTree Auditoría] hashes cargados a mano:', hashes);
       if(!hashes.length) return; // todavía no cargaste ningún hash: se queda el estado vacío
 
       const rows = [];
       for(const hash of hashes){
         try{
-          const tx = await withFallback('getTransaction', [hash, { maxSupportedTransactionVersion: 0 }]);
+          const tx = await getTransactionWithFallback(hash);
           if(!tx || !tx.meta){
-            console.warn('[PumpTree Auditoría] no encontré esa transacción:', hash);
+            console.warn('[PumpTree Auditoría] no encontré esa transacción en ningún RPC:', hash);
             continue;
           }
           // las cuentas "estáticas" de la tx, más las que se resuelven vía
@@ -646,6 +668,7 @@
             continue;
           }
           const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
+          console.log('[PumpTree Auditoría] procesada OK:', hash, 'delta:', delta);
           rows.push({
             date: fmtDate(tx.blockTime),
             amount: delta,
