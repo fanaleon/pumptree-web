@@ -1010,9 +1010,11 @@
     if(!amountEl) return;
 
     const TREASURY_WALLET = 'GDkZei9e8CuoczpLUcCqTb2UqUymRgGFhhDx5Vwm5tU4';
-    // RPCs públicos pensados para consumirse directo desde el navegador (sin API key).
-    // Se prueban en orden: si el primero falla (caído o bloquea el origen), pasa al siguiente.
+    // Helius primero (API key gratis, con historial completo y CORS habilitado
+    // para producción). Los públicos quedan como respaldo por si Helius
+    // llegara a fallar alguna vez.
     const SOLANA_RPCS = [
+      'https://mainnet.helius-rpc.com/?api-key=72176d3f-0d7f-4009-8f7f-5bb12ee452e6',
       'https://solana-rpc.publicnode.com',
       'https://rpc.solanatracker.io/public',
       'https://api.mainnet-beta.solana.com'
