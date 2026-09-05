@@ -126,6 +126,10 @@
     white-space:nowrap;
   }
   .copy-btn:hover{background:var(--flare); color:var(--oil);}
+  .copy-btn:disabled{
+    border-color:var(--line); color:var(--bone-dim); cursor:not-allowed; opacity:.5;
+  }
+  .copy-btn:disabled:hover{ background:transparent; color:var(--bone-dim); }
   @media (max-width:640px){
     nav{ padding:16px 5vw; flex-wrap:wrap; gap:14px; }
     .logo span{ display:none; }
@@ -442,8 +446,8 @@
       <span class="lang-switch-label es">ES</span>
     </div>
     <div class="nav-copy-ca">
-      <span class="addr mono" data-i18n="caAddr">35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump</span>
-      <button class="copy-btn" onclick="navigator.clipboard.writeText('35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump')" data-i18n="caCopy">COPY</button>
+      <span class="addr mono" data-i18n="caAddr">SOON</span>
+      <button class="copy-btn" disabled data-i18n="caCopy">COPY</button>
     </div>
   </div>
 </nav>
@@ -684,7 +688,7 @@
   const i18n = {
     navHome: {es:'PUMPTREE', en:'PUMPTREE'},
     backHome: {es:'← VOLVER AL SITIO', en:'← BACK TO SITE'},
-    caAddr: {es:'35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump', en:'35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump'},
+    caAddr: {es:'SOON', en:'SOON'},
     caCopy: {es:'COPIAR', en:'COPY'},
     heroEyebrow: {
       es: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span>LITEPAPER</span>',

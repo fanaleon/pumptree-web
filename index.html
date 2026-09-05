@@ -425,6 +425,10 @@
     border-radius:2px; cursor:pointer; letter-spacing:.05em; transition:all .2s;
   }
   .copy-btn:hover{background:var(--flare); color:var(--oil);}
+  .copy-btn:disabled{
+    border-color:var(--line); color:var(--bone-dim); cursor:not-allowed; opacity:.5;
+  }
+  .copy-btn:disabled:hover{ background:transparent; color:var(--bone-dim); }
 
   /* ---------- section shell ---------- */
   section{padding:clamp(40px,6vw,64px) 6vw;}
@@ -714,7 +718,7 @@
       </a>
     </li>
     <li>
-      <a href="https://t.me/pumptreevm" target="_blank" rel="noopener" class="social-btn">
+      <a href="https://t.me/welcometree" target="_blank" rel="noopener" class="social-btn">
         <svg viewBox="0 0 24 24"><path d="M21.9 3.7 2.3 11.3c-1.2.5-1.2 1.2-.2 1.5l5 1.6 1.9 5.9c.2.7.4.9.9.9.4 0 .6-.2.9-.5l2.2-2.1 4.8 3.5c.9.5 1.5.2 1.7-.8L23.4 5c.3-1.2-.5-1.7-1.5-1.3ZM8.3 14l9.4-6.1c.5-.3.9-.1.6.3l-8 7.5-.3 3-1.5-4.5Z"/></svg>
         <span>Telegram</span>
       </a>
@@ -752,9 +756,9 @@
   <div class="ca-box">
     <div class="ca-box-info">
       <div class="label" data-i18n="caLabel">CONTRACT ADDRESS (SOLANA)</div>
-      <div class="addr" data-i18n="caAddr">35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump</div>
+      <div class="addr" data-i18n="caAddr">SOON</div>
     </div>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump')" data-i18n="caCopy">COPIAR</button>
+    <button class="copy-btn" disabled data-i18n="caCopy">COPIAR</button>
   </div>
 </section>
 
@@ -1169,7 +1173,7 @@
     auditCtaBtn: {es:'Auditoría', en:'Audit'},
     horizonLabel: {es:'POZO PETROLERO → ÁRBOL NATIVO', en:'OIL WELL → NATIVE TREE'},
     caLabel: {es:'CONTRACT ADDRESS (SOLANA)', en:'CONTRACT ADDRESS (SOLANA)'},
-    caAddr: {es:'35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump', en:'35B13qmXkPc89ftKby8jxsJq9UhAupzSBA7oMAMipump'},
+    caAddr: {es:'SOON', en:'SOON'},
     caCopy: {es:'COPIAR', en:'COPY'},
     misionEyebrow: {es:'// LA MISIÓN', en:'// THE MISSION'},
     misionH2: {es:'No es solo un token con logo verde.<br>Es un compromiso con las siguientes generaciones.', en:"It's not just a token with a green logo.<br>It's a commitment to the generations to come."},
