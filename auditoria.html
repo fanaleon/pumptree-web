@@ -392,7 +392,7 @@
             <th data-i18n="colReceipt">Receipt</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="tbody-gastos">
           <tr>
             <td colspan="4">
               <div class="audit-empty">
@@ -487,7 +487,7 @@
   })();
 </script>
 <script>
-  console.log('%c[PumpTree] auditoria.html — build 2026-09-02-B', 'color:#c6ff2e; font-weight:bold; font-size:14px; background:#151210; padding:4px 10px;');
+  console.log('%c[PumpTree] auditoria.html — build 2026-09-04-gastos', 'color:#c6ff2e; font-weight:bold; font-size:14px; background:#151210; padding:4px 10px;');
   const i18n = {
     navHome: {es:'PUMPTREE', en:'PUMPTREE'},
     backHome: {es:'← VOLVER AL SITIO', en:'← BACK TO SITE'},
@@ -560,29 +560,34 @@
   else if(initialHash === 'otros') showPanel('panel-otros');
 
   // ══════════════════════════════════════════════════════════════════
-  // INGRESOS: cargá el hash, el resto se completa solo
+  // INGRESOS: ahora se descubren solos
   //
-  // Los RPC gratuitos no dejan "listar todas las transacciones" de una
-  // wallet automáticamente (eso lo cobran aparte) — pero sí dejan traer
-  // los datos de UNA transacción puntual si le pasás el hash. Por eso
-  // el flujo es: vos agregás el hash + una descripción acá abajo, y el
-  // sitio busca solo la fecha y el monto de esa transacción y arma la
-  // fila completa.
+  // Con Helius como RPC principal (que sí mantiene el historial completo),
+  // el sitio detecta automáticamente los ingresos nuevos a la wallet —
+  // ya no hace falta pegar el hash a mano.
   //
-  // Cómo agregar un ingreso nuevo:
-  // 1. Andá al historial de la wallet en Solscan y abrí la transacción.
-  // 2. Copiá el hash de la URL (solscan.io/tx/ESTE_HASH_LARGO).
-  // 3. Agregá una línea acá abajo con ese hash y la descripción que
-  //    quieras que se vea en la tabla.
+  // Lo único opcional: si querés que un ingreso puntual muestre una
+  // descripción específica en vez del texto genérico "Ingreso a la
+  // wallet", agregá una línea acá abajo con su hash (lo sacás de la
+  // columna "Tx hash" de la tabla, o de Solscan) y la descripción.
   // ══════════════════════════════════════════════════════════════════
   const INCOME_CONCEPTS = {
     // 'HASH_COMPLETO_DE_LA_TRANSACCION': 'Descripción que quieras mostrar',
     '2h3ktjKYgc9ky8XShVLpAJ7qURzEMX7S3jWcHN6FdDjaUd6MHaHWYJ5vfFq7HBZyVuvaYCYapxEZ5HEt3zm7wrxR': 'Transferencia desde Lemon Cash',
   };
 
+  // Mismo sistema para los gastos (salidas de la wallet): se descubren
+  // solos, y acá podés ponerle una descripción a cada uno si querés que
+  // diga algo específico ("Recompra de $PMPT", "Compra de plantines",
+  // etc.) en vez del texto genérico "Salida de la wallet".
+  const EXPENSE_DETAILS = {
+    // 'HASH_COMPLETO_DE_LA_TRANSACCION': 'Descripción que quieras mostrar',
+  };
+
   (function(){
-    const tbody = document.getElementById('tbody-ingresos');
-    if(!tbody) return;
+    const tbodyIn = document.getElementById('tbody-ingresos');
+    const tbodyOut = document.getElementById('tbody-gastos');
+    if(!tbodyIn && !tbodyOut) return;
 
     const TREASURY_WALLET = 'GDkZei9e8CuoczpLUcCqTb2UqUymRgGFhhDx5Vwm5tU4';
     const SOLANA_RPCS = [
@@ -642,17 +647,24 @@
       return d.toISOString().slice(0,10);
     }
 
-    async function loadIncome(){
-      const hashes = Object.keys(INCOME_CONCEPTS);
-      console.log('[PumpTree Auditoría] hashes cargados a mano:', hashes);
-      if(!hashes.length) return; // todavía no cargaste ningún hash: se queda el estado vacío
+    async function loadTreasuryActivity(){
+      let sigs = [];
+      try{
+        sigs = await withFallback('getSignaturesForAddress', [TREASURY_WALLET, { limit: 15 }]);
+        console.log('[PumpTree Auditoría] firmas encontradas:', sigs && sigs.length);
+      } catch(e){
+        console.warn('[PumpTree Auditoría] no pude listar las firmas de la wallet:', e.message || e);
+        return; // se queda el estado vacío default en las dos tablas
+      }
+      if(!sigs || !sigs.length) return;
 
-      const rows = [];
-      for(const hash of hashes){
+      const incomeRows = [];
+      const expenseRows = [];
+      for(const s of sigs){
         try{
-          const tx = await getTransactionWithFallback(hash);
+          const tx = await getTransactionWithFallback(s.signature);
           if(!tx || !tx.meta){
-            console.warn('[PumpTree Auditoría] no encontré esa transacción en ningún RPC:', hash);
+            console.warn('[PumpTree Auditoría] no encontré esa transacción en ningún RPC:', s.signature);
             continue;
           }
           // las cuentas "estáticas" de la tx, más las que se resuelven vía
@@ -665,37 +677,51 @@
           const keys = staticKeys.concat(loadedWritable, loadedReadonly);
           const idx = keys.indexOf(TREASURY_WALLET);
           if(idx === -1){
-            console.warn('[PumpTree Auditoría] la wallet no aparece en esta tx:', hash);
+            console.warn('[PumpTree Auditoría] la wallet no aparece en esta tx:', s.signature);
             continue;
           }
           const delta = (tx.meta.postBalances[idx] - tx.meta.preBalances[idx]) / 1e9;
-          console.log('[PumpTree Auditoría] procesada OK:', hash, 'delta:', delta);
-          rows.push({
-            date: fmtDate(tx.blockTime),
-            amount: delta,
-            hash: hash
-          });
+          const row = { date: fmtDate(tx.blockTime || s.blockTime), amount: delta, hash: s.signature };
+          if(delta > 0){
+            console.log('[PumpTree Auditoría] ingreso encontrado:', s.signature, 'delta:', delta);
+            incomeRows.push(row);
+          } else if(delta < 0){
+            console.log('[PumpTree Auditoría] gasto encontrado:', s.signature, 'delta:', delta);
+            expenseRows.push(row);
+          }
         } catch(e){
-          console.warn('[PumpTree Auditoría] falló procesando', hash, e.message || e);
+          console.warn('[PumpTree Auditoría] falló procesando', s.signature, e.message || e);
         }
       }
 
-      if(!rows.length) return; // ninguno de los hashes cargados pudo procesarse
+      // más nuevo primero, en las dos tablas
+      incomeRows.sort((a, b) => b.date.localeCompare(a.date));
+      expenseRows.sort((a, b) => b.date.localeCompare(a.date));
 
-      // más nuevo primero
-      rows.sort((a, b) => b.date.localeCompare(a.date));
+      if(tbodyIn && incomeRows.length){
+        tbodyIn.innerHTML = incomeRows.map(r => `
+          <tr>
+            <td>${r.date}</td>
+            <td class="amt">+ ${r.amount.toFixed(4)} SOL</td>
+            <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Ingreso a la wallet'}</td>
+            <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
+          </tr>
+        `).join('');
+      }
 
-      tbody.innerHTML = rows.map(r => `
-        <tr>
-          <td>${r.date}</td>
-          <td class="amt">${r.amount >= 0 ? '+' : ''} ${r.amount.toFixed(4)} SOL</td>
-          <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Ingreso a la wallet'}</td>
-          <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
-        </tr>
-      `).join('');
+      if(tbodyOut && expenseRows.length){
+        tbodyOut.innerHTML = expenseRows.map(r => `
+          <tr>
+            <td>${r.date}</td>
+            <td class="amt">− ${Math.abs(r.amount).toFixed(4)} SOL</td>
+            <td class="detail">${EXPENSE_DETAILS[r.hash] || 'Salida de la wallet'}</td>
+            <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
+          </tr>
+        `).join('');
+      }
     }
 
-    loadIncome();
+    loadTreasuryActivity();
   })();
 
   // scroll reveal
