@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auditoría — PumpTree Vaca Muerta</title>
+<title>Audit — PumpTree Vaca Muerta</title>
 <link rel="icon" type="image/webp" href="pumptree-logo.webp">
 <link rel="apple-touch-icon" href="pumptree-logo.webp">
 <meta property="og:type" content="website">
@@ -573,7 +573,7 @@
   // ══════════════════════════════════════════════════════════════════
   const INCOME_CONCEPTS = {
     // 'HASH_COMPLETO_DE_LA_TRANSACCION': 'Descripción que quieras mostrar',
-    '2h3ktjKYgc9ky8XShVLpAJ7qURzEMX7S3jWcHN6FdDjaUd6MHaHWYJ5vfFq7HBZyVuvaYCYapxEZ5HEt3zm7wrxR': 'Transferencia desde Lemon Cash',
+    '2h3ktjKYgc9ky8XShVLpAJ7qURzEMX7S3jWcHN6FdDjaUd6MHaHWYJ5vfFq7HBZyVuvaYCYapxEZ5HEt3zm7wrxR': 'Transfer from Lemon Cash',
   };
 
   // Mismo sistema para los gastos (salidas de la wallet): se descubren
@@ -703,7 +703,7 @@
           <tr>
             <td>${r.date}</td>
             <td class="amt">+ ${r.amount.toFixed(4)} SOL</td>
-            <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Ingreso a la wallet'}</td>
+            <td class="detail">${INCOME_CONCEPTS[r.hash] || 'Wallet income'}</td>
             <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
           </tr>
         `).join('');
@@ -714,7 +714,7 @@
           <tr>
             <td>${r.date}</td>
             <td class="amt">− ${Math.abs(r.amount).toFixed(4)} SOL</td>
-            <td class="detail">${EXPENSE_DETAILS[r.hash] || 'Salida de la wallet'}</td>
+            <td class="detail">${EXPENSE_DETAILS[r.hash] || 'Wallet outflow'}</td>
             <td><a class="audit-link" href="https://solscan.io/tx/${r.hash}" target="_blank" rel="noopener">${short(r.hash)} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></a></td>
           </tr>
         `).join('');
