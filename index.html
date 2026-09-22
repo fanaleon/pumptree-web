@@ -225,6 +225,14 @@
     transition:all .2s;
   }
   .buy-btn:hover{background:transparent; color:var(--flare);}
+  .play-demo-btn{
+    background:var(--orange); color:var(--oil); font-family:'JetBrains Mono',monospace;
+    font-weight:700; font-size:13px; letter-spacing:.05em; padding:10px 18px;
+    border-radius:2px; text-decoration:none; border:1px solid var(--orange);
+    transition:all .2s; white-space:nowrap;
+    box-shadow:0 0 14px rgba(232,112,58,0.35);
+  }
+  .play-demo-btn:hover{background:transparent; color:var(--orange); box-shadow:0 0 18px rgba(232,112,58,0.5);}
 
   /* ---------- hero ---------- */
   .hero{
@@ -598,6 +606,7 @@
     .lang-switch-knob{width:18px; height:18px;}
     .lang-switch.is-es .lang-switch-knob{ transform:translateX(21px); }
     .buy-btn{padding:9px 12px; font-size:11px;}
+    .play-demo-btn{padding:9px 12px; font-size:11px;}
     .hero{padding:6vh 6vw 0;}
     .audit-cta{flex-direction:column;}
     .audit-cta a{text-align:center;}
@@ -741,6 +750,7 @@
       <span class="lang-switch-label es">ES</span>
     </div>
     <a href="litepaper.html" class="buy-btn" data-i18n="navBuy">Litepaper</a>
+    <a href="demo.html" class="play-demo-btn" data-i18n="navPlayDemo">▶ PLAY DEMO</a>
   </div>
 </nav>
 
@@ -1161,6 +1171,7 @@
     },
     navChart: {es:'Chart', en:'Chart'},
     navBuy: {es:'Litepaper', en:'Litepaper'},
+    navPlayDemo: {es:'▶ PROBAR DEMO', en:'▶ PLAY DEMO'},
     heroEyebrow: {es:'// INICIATIVA DE FORESTACIÓN MASIVA EN VACA MUERTA, ARGENTINA', en:'// MASSIVE REFORESTATION INITIATIVE IN VACA MUERTA, ARGENTINA'},
     heroH1: {es:'Primer token <span class="flare">verde</span> en <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, de impacto ambiental', en:'The first <span class="flare">green</span> token on <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, for environmental impact'},
     heroSub: {es:'Vaca Muerta es el yacimiento más grande de Argentina —segunda reserva mundial de gas no convencional y cuarta de petróleo— y representa más del 70% de la producción del país. Ese crecimiento hoy requiere mitigación. PumpTree propone reforestar la zona con árboles nativos, plantados por la comunidad y verificados por satélite. Los fees financian el trabajo; cada parcela, un NFT dinámico que crece con ella.', en:"Vaca Muerta is Argentina's largest field — the world's second-largest unconventional gas reserve and fourth-largest oil reserve — accounting for over 70% of the country's production. That growth now needs mitigation. PumpTree proposes reforesting the area with native trees, planted by the community and verified by satellite. Fees fund the work; every parcel becomes a dynamic NFT that grows with it."},
@@ -1243,7 +1254,7 @@
   }
 
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-primary, .btn-ghost, .buy-btn, .copy-btn, .dropdown-menu a, .lang-switch, .social-btn, #back-to-top, .dash-teaser, .footer-mail');
+    const btn = e.target.closest('.btn-primary, .btn-ghost, .buy-btn, .play-demo-btn, .copy-btn, .dropdown-menu a, .lang-switch, .social-btn, #back-to-top, .dash-teaser, .footer-mail');
     if(btn){
       const r = btn.getBoundingClientRect();
       spawnLeaves(r.left + r.width/2, r.top + r.height/2);
