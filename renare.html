@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RENARE — Registro de Carbono en Solana | PumpTree</title>
+<title>RENARE — Así funciona el registro de carbono en Solana | PumpTree</title>
+<meta name="description" content="Recorrido interactivo por ReNaRe: cómo un proyecto de carbono pasa por la firma de la provincia y de Nación, se emite como token en Solana y se retira. Con datos ficticios.">
 <link rel="icon" type="image/webp" href="pumptree-logo.webp">
 <link rel="apple-touch-icon" href="pumptree-logo.webp">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pumptreevm.com/renare.html">
-<meta property="og:title" content="RENARE — Registro Federado de Créditos de Carbono en Solana">
-<meta property="og:description" content="Prototipo técnico on-chain del proyecto de ley S-808/26 (Royón), construido por el equipo de PumpTree. Corriendo en vivo en Solana Devnet.">
+<meta property="og:title" content="RENARE — Así funciona el registro federado de créditos de carbono">
+<meta property="og:description" content="Recorrido interactivo: carga, firmas de la provincia y de Nación, emisión en Solana y retiro de créditos. Prototipo técnico del proyecto de ley S-808/26, construido por PumpTree.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;0,18..144,600;1,18..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Sans:wght@400;500&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;0,18..144,600;1,18..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --oil:#151210;
@@ -219,6 +220,256 @@
   }
   footer .credit a{ color:var(--flare); text-decoration:underline; text-underline-offset:2px; }
   footer .disclaimer{ color:var(--bone-dim); opacity:.55; font-size:11px; max-width:560px; margin:0 auto; line-height:1.6; }
+
+
+  /* ======================================================================
+     Recorrido, constructor de token, público/privado y verificador
+     ====================================================================== */
+  .tour-sec{ padding-top:clamp(20px,3vw,32px); }
+  .anclas{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:26px; }
+  .anclas a{
+    font-family:'JetBrains Mono',monospace; font-size:12px; text-decoration:none; color:var(--bone-dim);
+    border:1px solid var(--line); border-radius:20px; padding:8px 16px; transition:all .2s;
+  }
+  .anclas a:hover{ color:var(--flare); border-color:var(--flare); }
+
+  .tour{
+    max-width:1120px; margin:0 auto; display:grid;
+    grid-template-columns:minmax(260px,350px) minmax(0,1fr); gap:clamp(22px,3.4vw,44px); align-items:start;
+  }
+  .tour-lado{ position:sticky; top:20px; }
+  .tour-prog{ display:flex; gap:6px; margin-bottom:22px; }
+  .tour-prog button{
+    flex:1; height:6px; border:0; padding:0; border-radius:3px; background:rgba(236,227,210,.16);
+    cursor:pointer; position:relative; transition:background .25s;
+  }
+  .tour-prog button::before{ content:''; position:absolute; inset:-9px 0; }
+  .tour-prog button.hecho{ background:var(--sage); }
+  .tour-prog button.actual{ background:var(--flare); }
+  .tour-num{ font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.18em; color:var(--sage); margin-bottom:10px; }
+  .tour-lado h3{ font-size:clamp(21px,2.5vw,27px); line-height:1.14; text-transform:none; margin-bottom:12px; }
+  .tour-lado .txt{ font-size:15.5px; line-height:1.65; color:var(--bone-dim); }
+  .tour-lado .txt b{ color:var(--bone); font-weight:600; }
+  .tour-bajo{
+    margin-top:18px; padding:11px 14px; border-left:2px solid var(--clay);
+    font-family:'JetBrains Mono',monospace; font-size:11.8px; line-height:1.6; color:var(--bone-dim);
+  }
+  .tour-bajo span{ display:block; color:var(--orange); letter-spacing:.14em; font-size:10.5px; margin-bottom:5px; }
+  .tour-ctrl{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+  .btn-t{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.03em; cursor:pointer;
+    background:transparent; color:var(--bone-dim); border:1px solid var(--line); border-radius:20px; padding:10px 18px; transition:all .2s;
+  }
+  .btn-t:hover:not(:disabled){ color:var(--bone); border-color:var(--bone-dim); }
+  .btn-t:disabled{ opacity:.35; cursor:default; }
+  .btn-t.primario{ color:var(--flare); border-color:var(--flare); }
+  .btn-t.primario:hover:not(:disabled){ background:var(--flare); color:var(--oil); }
+  .btn-t.pulsa{ animation:pulsa 1.6s ease-in-out infinite; }
+  @keyframes pulsa{ 0%,100%{ box-shadow:0 0 0 0 rgba(198,255,46,.45); } 50%{ box-shadow:0 0 0 8px rgba(198,255,46,0); } }
+  .btn-t:focus-visible, .p-btn:focus-visible, .anclas a:focus-visible, .tour-prog button:focus-visible{ outline:2px solid var(--flare); outline-offset:3px; }
+
+  /* ---- la pantalla simulada (se ve como la plataforma real) ---- */
+  .pantalla{
+    --n:#0A141C; --t:#0F1C27; --t2:#142533; --l:#1F3342; --lf:#2C4659; --h:#E8EEEA; --h2:#A9BAB8; --nb:#7F9594;
+    --pino:#3B8C63; --pinoc:#56B181; --pinos:rgba(59,140,99,.16); --cielo:#5FA8E0; --cieloc:#8CC3EE; --cielos:rgba(95,168,224,.15);
+    --amb:#E0B050; --ambs:rgba(224,176,80,.14); --pel:#E07A68;
+    font-family:'IBM Plex Sans','Segoe UI',sans-serif; font-size:14px; color:var(--h); background:var(--n);
+    border:1px solid var(--lf); border-radius:14px; overflow:hidden; position:relative; min-width:0;
+    box-shadow:0 34px 90px -34px rgba(0,0,0,.85);
+  }
+  .pantalla *{ box-sizing:border-box; }
+  .p-barra{ display:flex; justify-content:space-between; gap:10px; padding:8px 14px; background:#06101a; border-bottom:1px solid var(--l); font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--nb); }
+  .p-sim{ color:var(--amb); letter-spacing:.08em; text-align:right; }
+  .p-top{ display:flex; justify-content:space-between; align-items:center; padding:13px 20px; border-bottom:1px solid var(--l); background:rgba(13,26,37,.9); }
+  .p-marca{ display:flex; align-items:center; gap:9px; }
+  .p-marca img{ width:26px; height:26px; border-radius:50%; }
+  .p-marca b{ font-family:'Fraunces',Georgia,serif; font-weight:500; letter-spacing:.04em; font-size:16px; }
+  .p-user{ display:flex; align-items:center; gap:10px; font-size:12.5px; text-align:right; line-height:1.25; }
+  .p-user small{ display:block; color:var(--nb); font-size:11px; }
+  .p-user i{ font-style:normal; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-size:11.5px; font-weight:500; background:linear-gradient(135deg,#1F5F55,#2B6F94); }
+  .p-tabs{ display:flex; gap:2px; padding:0 14px; border-bottom:1px solid var(--l); overflow-x:auto; scrollbar-width:none; }
+  .p-tab{ padding:12px 13px; font-size:12.8px; color:var(--nb); white-space:nowrap; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .p-tab.on{ color:var(--h); border-bottom-color:var(--cielo); }
+  .p-cont{ padding:22px 20px 24px; min-height:430px; position:relative; }
+  .p-intro{ margin:0 0 16px; color:var(--h2); font-size:13.2px; max-width:56ch; line-height:1.5; }
+
+  .p-form{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .p-form .full{ grid-column:1/-1; }
+  .p-form label{ display:block; font-size:11.8px; color:var(--h2); margin-bottom:6px; font-weight:500; }
+  .p-in{ min-height:38px; padding:9px 12px; border-radius:9px; background:rgba(8,17,24,.75); border:1px solid var(--lf); font-size:13.5px; display:flex; align-items:center; }
+  .p-in.mono{ font-family:'JetBrains Mono',monospace; letter-spacing:.12em; }
+  .p-in.escribiendo::after{ content:''; width:1.5px; height:15px; background:var(--pinoc); margin-left:2px; animation:parpadeo .8s steps(1) infinite; }
+  @keyframes parpadeo{ 50%{ opacity:0; } }
+  .p-ayuda{ display:block; margin-top:5px; font-size:11px; color:var(--nb); }
+  .p-vista{ border:1px dashed var(--lf); border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; justify-content:center; gap:3px; min-height:64px; }
+  .p-vista span{ font-size:11px; color:var(--nb); }
+  .p-vista b{ font-family:'JetBrains Mono',monospace; font-weight:500; font-size:17px; letter-spacing:.1em; }
+  .p-vista b.vacio{ color:var(--nb); font-size:13px; letter-spacing:.02em; }
+  .p-vista small{ font-size:10.8px; color:var(--h2); }
+
+  .p-btn{
+    font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:13px; line-height:1; cursor:pointer; border-radius:9px;
+    padding:11px 18px; border:1px solid transparent; color:var(--h2); background:transparent; transition:all .15s;
+  }
+  .p-btn.primario{ color:#fff; background:linear-gradient(180deg,#43996F,#2F7A58); border-color:#4FAE82; }
+  .p-btn.primario:hover:not(:disabled){ background:linear-gradient(180deg,#4BA578,#338660); }
+  .p-btn.ghost{ border-color:var(--lf); }
+  .p-btn.ghost:hover:not(:disabled){ color:var(--h); border-color:var(--cielo); background:var(--cielos); }
+  .p-btn.chico{ padding:7px 12px; font-size:12px; }
+  .p-btn:disabled{ opacity:.45; cursor:default; }
+  .p-acciones{ margin-top:18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+
+  .p-pill{ display:inline-flex; align-items:center; gap:6px; font-size:11.3px; font-weight:500; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .p-pill::before{ content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .p-pill.curso{ color:var(--cieloc); background:var(--cielos); }
+  .p-pill.listo{ color:var(--pinoc); background:var(--pinos); }
+  .p-pill.espera{ color:var(--amb); background:var(--ambs); }
+
+  .p-card{ background:linear-gradient(180deg,rgba(20,37,51,.85),rgba(15,28,39,.85)); border:1px solid var(--l); border-radius:12px; padding:18px; }
+  .p-card-cab{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .p-card-cab h4{ font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:18px; line-height:1.2; text-transform:none; }
+  .p-sub{ margin:0 0 14px; color:var(--nb); font-size:12.2px; }
+  .p-datos{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 16px; }
+  .p-datos dt{ font-size:10.8px; color:var(--nb); }
+  .p-datos dd{ margin:2px 0 0; font-size:13px; }
+  .p-datos dd.mono{ font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .p-firmantes{ display:flex; flex-direction:column; gap:8px; }
+  .p-firmante{ display:flex; align-items:center; gap:11px; padding:9px 12px; border:1px solid var(--l); border-radius:10px; background:rgba(8,17,24,.4); }
+  .p-firmante i{ font-style:normal; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:10.5px; background:var(--t2); border:1px solid var(--lf); color:var(--h2); flex:none; }
+  .p-firmante span{ flex:1; font-size:13px; min-width:0; }
+  .p-firmante.firmo{ border-color:rgba(86,177,129,.5); }
+  .p-firmante.firmo i{ background:var(--pinos); border-color:var(--pino); color:var(--pinoc); }
+  .p-firmo{ font-size:12px; color:var(--pinoc); display:inline-flex; align-items:center; gap:5px; }
+  .p-nofalta{ font-size:11.5px; color:var(--nb); }
+  .p-nota{ font-size:12.2px; color:var(--pinoc); max-width:46ch; line-height:1.45; }
+  .p-nota.amb{ color:var(--amb); }
+
+  .p-lista{ list-style:none; margin:0 0 18px; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .p-lista li{ display:flex; align-items:flex-start; gap:11px; font-size:13px; color:var(--nb); opacity:.55; transition:opacity .35s, color .35s; }
+  .p-lista li b{ flex:none; width:19px; height:19px; border-radius:50%; border:1px solid var(--lf); display:grid; place-items:center; font-size:11px; font-weight:400; color:transparent; transition:all .3s; margin-top:1px; }
+  .p-lista li.ok{ opacity:1; color:var(--h); }
+  .p-lista li.ok b{ background:var(--pinos); border-color:var(--pino); color:var(--pinoc); }
+  .p-lista code{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--cieloc); }
+
+  .p-stats{ display:flex; align-items:flex-end; flex-wrap:wrap; gap:6px 30px; margin:0 0 6px; }
+  .p-stats .gran{ font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:clamp(38px,6.4vw,54px); line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .p-stats .gran-txt{ color:var(--h2); font-size:14px; margin-left:10px; }
+  .p-stats dl{ display:flex; gap:22px; margin:0 0 4px; }
+  .p-stats dt{ font-size:11px; color:var(--nb); }
+  .p-stats dd{ margin:2px 0 0; font-size:17px; font-variant-numeric:tabular-nums; }
+  .p-eq{ margin:4px 0 16px; color:var(--nb); font-size:11.8px; }
+
+  .p-tabla{ border:1px solid var(--l); border-radius:12px; overflow:hidden; background:rgba(15,28,39,.7); margin-bottom:18px; }
+  .p-fila{ display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto; gap:14px; align-items:center; padding:13px 16px; border-bottom:1px solid var(--l); }
+  .p-fila:last-child{ border-bottom:0; }
+  .p-fila.cab{ padding:9px 16px; font-size:11px; color:var(--nb); background:rgba(20,37,51,.6); }
+  .p-fila.nueva{ background:linear-gradient(90deg,rgba(86,177,129,.12),transparent 65%); }
+  .p-fila .proy{ font-size:13px; line-height:1.3; }
+  .p-fila .mono{ font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .p-fila small{ display:block; color:var(--nb); font-size:11px; margin-top:3px; }
+  .p-etq{ display:inline-block; margin-left:7px; padding:1px 7px; border-radius:999px; font-size:10.5px; color:var(--pinoc); background:var(--pinos); }
+  .p-chain{ color:var(--pinoc); font-size:11.2px; margin-top:4px; display:block; }
+  .p-num{ font-variant-numeric:tabular-nums; text-align:right; }
+  .p-num strong{ display:block; font-weight:500; font-size:15px; }
+  h5.p-h{ font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:17px; text-transform:none; margin:6px 0 10px; }
+
+  .p-modal{ position:absolute; inset:0; background:rgba(5,10,14,.78); display:grid; place-items:center; padding:16px; z-index:3; animation:aparece .2s ease; }
+  @keyframes aparece{ from{ opacity:0; } }
+  .p-dialogo{ width:min(400px,100%); background:linear-gradient(180deg,var(--t2),var(--t)); border:1px solid var(--lf); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:13px; }
+  .p-dialogo h4{ font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:19px; text-transform:none; }
+  .p-dialogo .aviso{ font-size:11.6px; line-height:1.5; padding:9px 11px; border-radius:9px; background:var(--ambs); color:var(--amb); }
+  .p-dialogo .acc{ display:flex; justify-content:flex-end; gap:8px; }
+
+  .p-toast{ position:absolute; left:50%; bottom:14px; transform:translateX(-50%); background:var(--t2); border:1px solid var(--lf); border-radius:10px; padding:9px 14px; font-size:12.4px; z-index:4; animation:aparece .2s ease; max-width:calc(100% - 28px); text-align:center; }
+
+  .p-linea{ list-style:none; margin:0 0 16px; padding:0 0 0 4px; }
+  .p-linea li{ position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:0 0 13px 22px; font-size:12.6px; }
+  .p-linea li::before{ content:''; position:absolute; left:3px; top:5px; width:9px; height:9px; border-radius:50%; background:var(--pino); }
+  .p-linea li::after{ content:''; position:absolute; left:7px; top:16px; bottom:-3px; width:1.5px; background:var(--lf); }
+  .p-linea li:last-child::after{ display:none; }
+  .p-linea li.quema::before{ background:var(--amb); }
+  .p-linea em{ font-style:normal; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--cieloc); }
+  .p-linea small{ display:block; color:var(--nb); font-size:11px; margin-top:2px; }
+  .p-json{ margin:0 0 6px; padding:12px 14px; border:1px solid var(--l); border-radius:10px; background:#08121a; font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.65; color:var(--h2); overflow-x:auto; white-space:pre; }
+  .p-json .k{ color:var(--cieloc); } .p-json .v{ color:var(--pinoc); }
+
+  /* ---- constructor de token ---- */
+  .constructor{ max-width:980px; margin:0 auto; display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:clamp(20px,3vw,36px); align-items:start; }
+  .campos{ display:flex; flex-direction:column; gap:16px; }
+  .campos label{ display:block; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; color:var(--sage); margin-bottom:7px; }
+  .campos input[type=text], .campos input[type=number], .campos select, .verif input{
+    width:100%; background:var(--oil-2); color:var(--bone); border:1px solid var(--line); border-radius:6px; padding:12px 14px;
+    font-family:'Literata',serif; font-size:15.5px;
+  }
+  .campos select{ appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--bone-dim) 50%),linear-gradient(135deg,var(--bone-dim) 50%,transparent 50%); background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%; background-size:6px 6px; background-repeat:no-repeat; }
+  .campos input:focus, .campos select:focus, .verif input:focus{ outline:none; border-color:var(--flare); box-shadow:0 0 0 3px rgba(198,255,46,.12); }
+  .campos input[type=range]{ width:100%; accent-color:var(--flare); margin-top:4px; }
+  .campos .mono-in{ font-family:'JetBrains Mono',monospace !important; letter-spacing:.14em; text-transform:uppercase; }
+  .campos .pista{ font-size:12.5px; color:var(--bone-dim); opacity:.75; margin-top:6px; line-height:1.5; }
+  .campos .link-chico{ background:none; border:0; padding:0; color:var(--flare); font-family:'JetBrains Mono',monospace; font-size:11.5px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .resultado{ border:1px solid var(--line); border-radius:8px; background:var(--oil-2); padding:clamp(20px,3vw,30px); }
+  .resultado .sello{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.15em; color:var(--sage); margin-bottom:16px; }
+  .simbolo{ display:flex; flex-wrap:wrap; gap:8px; }
+  .trozo{ text-align:center; min-width:0; }
+  .trozo b{
+    display:block; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:clamp(24px,4.6vw,40px); letter-spacing:.06em;
+    padding:10px 14px; border-radius:6px; border:1px solid currentColor; line-height:1.1;
+  }
+  .trozo span{ display:block; margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:10.8px; letter-spacing:.1em; color:var(--bone-dim); }
+  .trozo.prov{ color:var(--flare); } .trozo.cant{ color:var(--orange); } .trozo.sig{ color:#9fd0c0; }
+  .largo{ margin-top:22px; padding-top:16px; border-top:1px solid var(--line); font-size:13.5px; color:var(--bone-dim); line-height:1.6; }
+  .largo code{ font-family:'JetBrains Mono',monospace; color:var(--bone); font-size:13px; word-break:break-word; }
+  .reglas{ margin-top:14px; display:flex; flex-direction:column; gap:7px; font-size:13px; color:var(--bone-dim); line-height:1.5; }
+  .reglas div::before{ content:'→ '; color:var(--sage); font-family:'JetBrains Mono',monospace; }
+
+  /* ---- público / privado ---- */
+  .dos{ max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .caja{ border:1px solid var(--line); border-radius:8px; background:var(--oil-2); padding:22px 22px 18px; }
+  .caja h4{ font-size:15px; text-transform:none; margin-bottom:14px; display:flex; align-items:center; gap:9px; }
+  .caja h4 i{ font-style:normal; font-family:'JetBrains Mono',monospace; font-size:11px; padding:3px 9px; border-radius:20px; letter-spacing:.06em; }
+  .caja.pub h4 i{ color:var(--flare); border:1px solid var(--flare); }
+  .caja.priv h4 i{ color:var(--orange); border:1px solid var(--orange); }
+  .caja ul{ list-style:none; display:flex; flex-direction:column; gap:10px; font-size:14px; color:var(--bone-dim); line-height:1.5; }
+  .caja li{ padding-left:20px; position:relative; }
+  .caja.pub li::before{ content:'✓'; position:absolute; left:0; color:var(--flare); font-family:'JetBrains Mono',monospace; }
+  .caja.priv li::before{ content:'🔒'; position:absolute; left:0; font-size:11px; top:3px; }
+  .nota-final{ max-width:900px; margin:16px auto 0; font-size:13.5px; color:var(--bone-dim); opacity:.8; line-height:1.6; text-align:center; }
+
+  /* ---- verificador ---- */
+  .verif{ max-width:760px; margin:0 auto; }
+  .verif form{ display:flex; gap:10px; flex-wrap:wrap; }
+  .verif input{ flex:1; min-width:220px; font-family:'JetBrains Mono',monospace; font-size:13px; }
+  .verif .salida{ margin-top:18px; border:1px solid var(--line); border-radius:8px; background:var(--oil-2); padding:20px 22px; display:none; }
+  .verif .salida.ver{ display:block; }
+  .verif .salida h4{ font-size:20px; text-transform:none; margin-bottom:4px; }
+  .verif .salida .sim{ font-family:'JetBrains Mono',monospace; color:var(--flare); font-size:14px; letter-spacing:.1em; }
+  .verif dl{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px 20px; margin-top:16px; }
+  .verif dt{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.14em; color:var(--sage); }
+  .verif dd{ margin-top:4px; font-size:15px; color:var(--bone); }
+  .verif .error{ color:var(--orange); font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6; }
+  .verif .pie{ margin-top:14px; font-size:12.5px; }
+  .verif .pie a{ color:var(--flare); font-family:'JetBrains Mono',monospace; text-underline-offset:3px; }
+
+  @media (max-width:900px){
+    .tour{ grid-template-columns:1fr; }
+    .tour-lado{ position:static; }
+    .constructor{ grid-template-columns:1fr; }
+  }
+  @media (max-width:700px){
+    .dos{ grid-template-columns:1fr; }
+    .p-form{ grid-template-columns:1fr; }
+    .p-datos{ grid-template-columns:1fr 1fr; }
+    .p-fila{ grid-template-columns:1fr auto; }
+    .p-fila.cab{ display:none; }
+    .p-fila > :nth-child(2){ grid-column:1/-1; order:3; }
+    .p-cont{ padding:18px 14px 22px; }
+    .p-barra{ flex-direction:column; gap:3px; }
+    .p-sim{ text-align:left; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+    .btn-t.pulsa, .live-dot, .p-in.escribiendo::after{ animation:none; }
+  }
 </style>
 </head>
 <body>
@@ -231,44 +482,127 @@
 
 <section class="hero">
   <div class="eyebrow">// PROTOTIPO TÉCNICO — PROYECTO DE LEY S-808/26 (SEN. ROYÓN)</div>
-  <h1>RENARE on-chain: registro <span class="flare">federado</span> de créditos de carbono</h1>
-  <p class="sub">Un prototipo funcional, corriendo de verdad en la blockchain de Solana, de un registro de créditos de carbono con separación de poderes entre provincia y Nación — cada aprobación exige la firma de varios auditores reales, no de una sola persona. Desarrollado por el equipo de PumpTree como aporte técnico al debate legislativo.</p>
+  <h1>Un registro de carbono donde <span class="flare">ninguna firma alcanza sola</span></h1>
+  <p class="sub">ReNaRe es un prototipo que corre de verdad en la blockchain de Solana. Un proyecto necesita la firma de varios auditores en la provincia y de otros en Nación antes de que existan los créditos. Acá lo podés recorrer paso a paso, con datos de ejemplo, y después comprobar lo real en vivo.</p>
   <div class="badge-row">
     <span class="pill"><span class="dot"></span> Solana Devnet</span>
     <span class="pill">Multisig real (Squads Protocol)</span>
     <span class="pill">Sin valor monetario — entorno de prueba</span>
   </div>
+  <div class="anclas">
+    <a href="#recorrido">Recorrido</a>
+    <a href="#token">Armá un token</a>
+    <a href="#publico">Qué es público</a>
+    <a href="#verificar">Verificá un crédito</a>
+    <a href="#estado-en-vivo">En vivo</a>
+  </div>
 </section>
 
-<section id="como-funciona">
+<section id="recorrido" class="tour-sec">
   <div class="section-head">
-    <div class="eyebrow">// CÓMO FUNCIONA</div>
-    <h2>Ningún organismo aprueba solo</h2>
-    <p>Un proyecto de carbono avanza en una sola dirección, y cada paso sensible requiere la firma de varios funcionarios y auditores acreditados a la vez — no de una wallet suelta.</p>
+    <div class="eyebrow">// RECORRIDO</div>
+    <h2>De la carga al retiro, en seis pasos</h2>
+    <p>Esta es la plataforma por dentro. Las pantallas son una simulación con datos inventados: probá firmar, enviar y retirar.</p>
   </div>
-  <div class="flow">
-    <div class="flow-step">
-      <span class="num">PASO 1</span>
-      <h4>Presentado</h4>
-      <p>Un agente provincial carga el proyecto ya presentado administrativamente por el productor: metodología, hash de los datos de verificación (MRV) y del legajo.</p>
+  <div class="tour">
+    <div class="tour-lado">
+      <div class="tour-prog" id="t-prog" role="tablist" aria-label="Pasos del recorrido"></div>
+      <div class="tour-num" id="t-num"></div>
+      <h3 id="t-titulo"></h3>
+      <div class="txt" id="t-texto" aria-live="polite"></div>
+      <div class="tour-bajo"><span>POR DEBAJO</span><div id="t-bajo"></div></div>
+      <div class="tour-ctrl">
+        <button class="btn-t" id="t-ant" type="button">← Anterior</button>
+        <button class="btn-t primario" id="t-sig" type="button">Siguiente →</button>
+      </div>
     </div>
-    <div class="flow-step">
-      <span class="num">PASO 2</span>
-      <h4>Aprobación provincial</h4>
-      <p>El multisig de la provincia (funcionarios + auditores habilitados) firma. Hace falta el umbral definido (ej. 2 de 3) para que la aprobación quede registrada on-chain.</p>
-      <span class="lock">🔒 Gatillado por multisig real</span>
+    <div class="pantalla" id="t-pantalla" aria-label="Simulación de la plataforma con datos ficticios"></div>
+  </div>
+</section>
+
+<section id="token">
+  <div class="section-head">
+    <div class="eyebrow">// EL NOMBRE DEL CRÉDITO</div>
+    <h2>Armá el nombre de un token</h2>
+    <p>Cada proyecto emite su propio token y su nombre dice, de un vistazo, de dónde viene y cuánto es. Cambiá los datos y mirá cómo se arma.</p>
+  </div>
+  <div class="constructor">
+    <div class="campos">
+      <div>
+        <label for="c-prov">PROVINCIA</label>
+        <select id="c-prov"></select>
+      </div>
+      <div>
+        <label for="c-nombre">NOMBRE DEL PROYECTO</label>
+        <input type="text" id="c-nombre" value="Vaca Muerta Reforestación" maxlength="60" autocomplete="off">
+      </div>
+      <div>
+        <label for="c-cant">CRÉDITOS (1 = 1 TONELADA DE CO₂)</label>
+        <input type="number" id="c-cant" min="1" max="999999999" step="1" value="3200">
+        <input type="range" id="c-rango" min="0" max="100" step="0.5" aria-label="Cantidad de créditos, escala logarítmica">
+      </div>
+      <div>
+        <label for="c-sigla">SIGLA DEL PROYECTO (3 O 4 LETRAS)</label>
+        <input type="text" id="c-sigla" class="mono-in" maxlength="8" autocomplete="off" spellcheck="false">
+        <div class="pista">La provincia la elige al cargar el proyecto. <button type="button" class="link-chico" id="c-sugerir">Usar la sugerida</button></div>
+      </div>
     </div>
-    <div class="flow-step">
-      <span class="num">PASO 3</span>
-      <h4>Aprobación nacional</h4>
-      <p>Recién después de la aprobación provincial, el multisig nacional (con los auditores del organismo de acreditación) puede firmar la aprobación final.</p>
-      <span class="lock">🔒 Gatillado por multisig real</span>
+    <div class="resultado">
+      <div class="sello">SÍMBOLO EN LA BLOCKCHAIN</div>
+      <div class="simbolo" id="c-simbolo" aria-live="polite"></div>
+      <div class="largo">Nombre completo: <code id="c-largo"></code></div>
+      <div class="reglas">
+        <div>Siempre son 10 caracteres como máximo, el límite de Solana.</div>
+        <div id="c-regla-cant"></div>
+        <div>La sigla no se puede repetir dentro de la misma provincia.</div>
+      </div>
     </div>
-    <div class="flow-step">
-      <span class="num">PASO 4</span>
-      <h4>Créditos emitidos</h4>
-      <p>Solo entonces se emiten los créditos como tokens SPL (1 token = 1 tonelada de CO₂ verificada), trazables desde su origen hasta su retiro.</p>
+  </div>
+</section>
+
+<section id="publico">
+  <div class="section-head">
+    <div class="eyebrow">// TRANSPARENCIA CON LÍMITES</div>
+    <h2>Qué se puede verificar y qué queda adentro</h2>
+    <p>La idea es que cualquiera pueda comprobar qué pasó, sin tener que confiar en nadie, y que los datos de las personas y de los predios sigan protegidos.</p>
+  </div>
+  <div class="dos">
+    <div class="caja pub">
+      <h4>Público <i>EN LA BLOCKCHAIN</i></h4>
+      <ul>
+        <li>Quién firmó cada paso y cuándo.</li>
+        <li>El estado de cada aprobación: pendiente, lista o ejecutada.</li>
+        <li>La huella (hash) de los datos de cada proyecto.</li>
+        <li>El token de cada proyecto: nombre, símbolo, cantidad emitida y si la emisión está cerrada.</li>
+        <li>Cada retiro: cuántos créditos se quemaron, con qué firmas y en qué transacción.</li>
+      </ul>
     </div>
+    <div class="caja priv">
+      <h4>Reservado <i>FUERA DE LA CADENA</i></h4>
+      <ul>
+        <li>El panel de carga y firma: se entra solo con un usuario acreditado.</li>
+        <li>Los datos del predio: propietario y ubicación exacta.</li>
+        <li>Usuarios, contraseñas y claves de firma.</li>
+        <li>El código y el servidor de la plataforma.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="nota-final">Los datos de cada proyecto no se publican: en la blockchain queda solo su huella. Sirve para demostrar más adelante que nadie los modificó.</p>
+</section>
+
+<section id="verificar">
+  <div class="section-head">
+    <div class="eyebrow">// COMPROBALO VOS</div>
+    <h2>Mirá un crédito en la blockchain</h2>
+    <p>Pegá la dirección de un token de Solana Devnet. Si es un crédito de ReNaRe, vas a ver su nombre, cuántos créditos existen y si la emisión quedó cerrada.</p>
+  </div>
+  <div class="verif">
+    <form id="v-form" autocomplete="off">
+      <input type="text" id="v-mint" placeholder="Dirección del token (mint)" spellcheck="false" aria-label="Dirección del token">
+      <button class="btn-t primario" type="submit" id="v-btn">Consultar</button>
+      <button class="btn-t" type="button" id="v-ejemplo" hidden>Probar con un crédito de ejemplo</button>
+    </form>
+    <div class="salida" id="v-salida" aria-live="polite"></div>
   </div>
 </section>
 
@@ -319,8 +653,541 @@
 
 <footer>
   <div class="credit">Tecnología y prototipo desarrollados por el equipo de <a href="index.html">PumpTree</a> — Vaca Muerta, Neuquén.</div>
-  <div class="disclaimer">Este prototipo corre en Solana Devnet, una red pública de pruebas sin valor monetario real, con el único fin de demostrar la viabilidad técnica de un registro federado de créditos de carbono con doble aprobación multisig. No representa un sistema oficial del Estado.</div>
+  <div class="disclaimer">Este prototipo corre en Solana Devnet, una red pública de pruebas sin valor monetario real, con el único fin de demostrar la viabilidad técnica de un registro federado de créditos de carbono con doble aprobación multisig. Las pantallas del recorrido son una simulación con datos ficticios. No representa un sistema oficial del Estado.</div>
 </footer>
+
+<script>
+// nombres.js — cómo se llaman los tokens de crédito de ReNaRe.
+//
+// Símbolo (10 caracteres como máximo, que es el límite de Solana):
+//     <PROVINCIA><CANTIDAD><SIGLA>      por ejemplo  NQN3K2VMRF
+//       PROVINCIA  3 letras, tabla fija de las 24 jurisdicciones
+//       CANTIDAD   3 caracteres: orden de magnitud de los créditos (500, 3K2, 12K, 1M5, 50M)
+//       SIGLA      3 o 4 letras que elige la provincia al cargar el proyecto
+//
+// Nombre largo (32 bytes como máximo):  NQN-3K2-VMRF · Vaca Muerta Reforestación
+//
+// Este archivo lo usan el servidor (require) y el navegador (<script src="nombres.js">),
+// así la vista previa del formulario y el nombre que se graba en la blockchain
+// salen siempre de la misma cuenta.
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.RenareNombres = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  // Códigos propios de ReNaRe, estilo aeropuerto donde hay uno claro.
+  // En cuatro casos no hay un aeropuerto único y el código es un mnemónico:
+  // Buenos Aires (BUE), Ciudad de Buenos Aires (CAB), Misiones (MIS) y Río Negro (RNG).
+  const CODIGOS_PROVINCIA = {
+    "buenos aires": "BUE",
+    "ciudad autonoma de buenos aires": "CAB",
+    "caba": "CAB",
+    "catamarca": "CTC",
+    "chaco": "RES",
+    "chubut": "REL",
+    "cordoba": "COR",
+    "corrientes": "CNQ",
+    "entre rios": "PRA",
+    "formosa": "FMA",
+    "jujuy": "JUJ",
+    "la pampa": "RSA",
+    "la rioja": "IRJ",
+    "mendoza": "MDZ",
+    "misiones": "MIS",
+    "neuquen": "NQN",
+    "rio negro": "RNG",
+    "salta": "SLA",
+    "san juan": "UAQ",
+    "san luis": "LUQ",
+    "santa cruz": "RGL",
+    "santa fe": "SFN",
+    "santiago del estero": "SDE",
+    "tierra del fuego": "USH",
+    "tucuman": "TUC",
+  };
+
+  function sinAcentos(texto) {
+    return String(texto || "").normalize("NFD").replace(/[̀-ͯ]/g, "");
+  }
+
+  function normalizarProvincia(nombre) {
+    return sinAcentos(nombre)
+      .toLowerCase()
+      .replace(/[^a-z ]/g, " ")
+      .replace(/^\s*(provincia|pcia)\s+(del?\s+)?/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // "Provincia de Neuquén" -> NQN. Si el nombre no está en la tabla, usa sus
+  // tres primeras letras para no frenar una emisión.
+  function codigoProvincia(nombre) {
+    const clave = normalizarProvincia(nombre);
+    if (CODIGOS_PROVINCIA[clave]) return CODIGOS_PROVINCIA[clave];
+    const prefijo = Object.keys(CODIGOS_PROVINCIA).find((k) => clave.startsWith(k + " ") || clave.startsWith(k + ","));
+    if (prefijo) return CODIGOS_PROVINCIA[prefijo];
+    const letras = clave.replace(/[^a-z]/g, "").toUpperCase();
+    return (letras + "XXX").slice(0, 3);
+  }
+
+  // Tres caracteres que dan el orden de magnitud, con la letra en lugar de la
+  // coma (como los valores de las resistencias): 3.200 -> 3K2, 1.500.000 -> 1M5.
+  // Siempre se redondea hacia abajo, para no mostrar más créditos de los que hay.
+  // La cantidad exacta está en el supply del token.
+  function codigoCantidad(cantidad) {
+    const n = Math.floor(Number(cantidad));
+    if (!Number.isFinite(n) || n < 1) throw new Error("La cantidad de créditos tiene que ser un entero de 1 en adelante.");
+    if (n < 1000) return String(n).padStart(3, "0");
+    if (n < 10000) return Math.floor(n / 1000) + "K" + Math.floor((n % 1000) / 100);
+    if (n < 100000) return Math.floor(n / 1000) + "K";
+    if (n < 1000000) return "0M" + Math.floor(n / 100000);
+    if (n < 10000000) return Math.floor(n / 1000000) + "M" + Math.floor((n % 1000000) / 100000);
+    if (n < 100000000) return Math.floor(n / 1000000) + "M";
+    return "99M";
+  }
+
+  const PALABRAS_VACIAS = new Set(["de", "del", "la", "el", "los", "las", "y", "e", "en", "para", "por", "con", "a", "al"]);
+
+  // Deja solo letras A-Z en mayúscula, hasta 4.
+  function limpiarSigla(texto) {
+    return sinAcentos(texto).toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+  }
+  function siglaValida(sigla) {
+    return /^[A-Z]{3,4}$/.test(String(sigla || ""));
+  }
+
+  // Sugerencia a partir del nombre del proyecto: iniciales de las palabras
+  // ("Vaca Muerta Reforestación" -> VMR). Con una sola palabra, completa con sus consonantes.
+  function sugerirSigla(nombreProyecto) {
+    const palabras = sinAcentos(nombreProyecto)
+      .toLowerCase()
+      .split(/[^a-z]+/)
+      .filter((p) => p && !PALABRAS_VACIAS.has(p));
+    if (!palabras.length) return "";
+    let sigla = palabras.slice(0, 4).map((p) => p[0]).join("");
+    if (sigla.length < 3) {
+      const consonantes = palabras[0].slice(1).replace(/[aeiou]/g, "");
+      sigla = (sigla + consonantes).slice(0, 4);
+    }
+    if (sigla.length < 3) sigla = palabras[0].slice(0, 3);
+    return limpiarSigla(sigla);
+  }
+
+  // Corta un texto para que ocupe como máximo `maximo` bytes en UTF-8
+  // (las tildes ocupan dos), sin partir un carácter por la mitad.
+  function recortarBytes(texto, maximo) {
+    const largo = (t) => (typeof Buffer !== "undefined" ? Buffer.byteLength(t, "utf8") : new TextEncoder().encode(t).length);
+    let salida = Array.from(String(texto));
+    while (salida.length && largo(salida.join("")) > maximo) salida.pop();
+    return salida.join("").trimEnd();
+  }
+
+  // Todo junto. `provincia` es el nombre ("Neuquén"), `sigla` ya validada.
+  function armarNombres({ provincia, cantidad, sigla, nombreProyecto }) {
+    const prov = codigoProvincia(provincia);
+    const cant = codigoCantidad(cantidad);
+    const sig = limpiarSigla(sigla);
+    if (!siglaValida(sig)) throw new Error("La sigla del proyecto tiene que tener 3 o 4 letras.");
+    const simbolo = prov + cant + sig;
+    const prefijo = `${prov}-${cant}-${sig}`;
+    const nombre = recortarBytes(`${prefijo} · ${nombreProyecto || ""}`, 32);
+    return { simbolo, nombre, prefijo, codigoProvincia: prov, codigoCantidad: cant, sigla: sig };
+  }
+
+  return { CODIGOS_PROVINCIA, codigoProvincia, codigoCantidad, limpiarSigla, siglaValida, sugerirSigla, recortarBytes, armarNombres };
+});
+
+</script>
+
+<script>
+/* ===== Recorrido interactivo: pantallas simuladas, sin conexión a ningún servidor ===== */
+(function () {
+  var N = window.RenareNombres;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var fmt = new Intl.NumberFormat('es-AR');
+  var reducido = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, reducido ? 0 : ms); }); };
+  var ISOTIPO = 'data:image/png;base64,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';
+  var token = 0; // al cambiar de paso, invalida las animaciones del anterior
+
+  var P = { nombre: 'Vaca Muerta Reforestación', ha: 1200, cred: 3200, prov: 'Neuquén' };
+  P.sigla = N.sugerirSigla(P.nombre);
+  P.n = N.armarNombres({ provincia: P.prov, cantidad: P.cred, sigla: P.sigla, nombreProyecto: P.nombre });
+
+  function esc(t) { var d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; }
+  function iniciales(n) { return n.split(/\s+/).filter(Boolean).slice(0, 2).map(function (p) { return p[0].toUpperCase(); }).join(''); }
+
+  function pantalla(rol, tab, cuerpo) {
+    var prov = rol === 'provincia';
+    var tabs = (prov ? [['nuevo', 'Proyecto nuevo']] : []).concat([['pend', 'Pendientes'], ['reg', 'Registro'], ['cred', 'Créditos emitidos']]);
+    return '<div class="p-barra"><span>renare · panel ' + (prov ? 'de la provincia' : 'de Nación') + '</span><span class="p-sim">SIMULACIÓN · DATOS FICTICIOS</span></div>' +
+      '<div class="p-top"><div class="p-marca"><img src="' + ISOTIPO + '" alt=""><b>RENARE</b></div>' +
+      '<div class="p-user"><span>' + (prov ? 'Equipo de Neuquén' : 'Equipo nacional') + '<small>' + (prov ? 'Provincia' : 'Nación') + '</small></span><i>' + (prov ? 'NQ' : 'AR') + '</i></div></div>' +
+      '<div class="p-tabs">' + tabs.map(function (t) { return '<span class="p-tab' + (t[0] === tab ? ' on' : '') + '">' + t[1] + '</span>'; }).join('') + '</div>' +
+      '<div class="p-cont">' + cuerpo + '</div>';
+  }
+
+  function aviso(txt) {
+    var el = $('#t-pantalla'); var viejo = $('.p-toast', el); if (viejo) viejo.remove();
+    var t = document.createElement('div'); t.className = 'p-toast'; t.textContent = txt; el.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.remove(); }, 3200);
+  }
+  function listoParaSeguir() { var b = $('#t-sig'); if (b && !b.disabled) b.classList.add('pulsa'); }
+
+  async function escribir(el, texto, t, ms) {
+    el.textContent = ''; el.classList.add('escribiendo');
+    for (var i = 0; i < texto.length; i++) {
+      if (t !== token) return false;
+      el.textContent += texto[i]; await sleep(ms || 34);
+    }
+    el.classList.remove('escribiendo'); return true;
+  }
+
+  /* ---------- paso 1: carga ---------- */
+  function montarCarga(c) {
+    var t = token;
+    c.innerHTML = pantalla('provincia', 'nuevo',
+      '<p class="p-intro">Los datos quedan registrados y el proyecto pasa a Nación automáticamente cuando tu equipo lo firme.</p>' +
+      '<div class="p-form">' +
+      '<div class="full"><label>Nombre del proyecto</label><div class="p-in" id="f-nombre"></div></div>' +
+      '<div><label>Hectáreas</label><div class="p-in" id="f-ha"></div></div>' +
+      '<div><label>Créditos estimados</label><div class="p-in" id="f-cred"></div></div>' +
+      '<div><label>Sigla del proyecto</label><div class="p-in mono" id="f-sigla"></div><span class="p-ayuda">3 o 4 letras. Se sugiere sola; se puede cambiar.</span></div>' +
+      '<div class="p-vista"><span>Así se va a llamar el token</span><b class="vacio" id="f-simbolo">Completá nombre, créditos y sigla</b><small id="f-partes"></small></div>' +
+      '<div class="full"><label>Propietario del predio</label><div class="p-in" id="f-prop"></div></div>' +
+      '</div>' +
+      '<div class="p-acciones"><button class="p-btn primario" id="f-boton" type="button">Cargar proyecto</button><span class="p-nota" id="f-nota"></span></div>');
+    var boton = $('#f-boton', c), cargado = false;
+    function mostrarSimbolo() {
+      var s = $('#f-simbolo', c); s.textContent = P.n.simbolo; s.classList.remove('vacio');
+      $('#f-partes', c).textContent = 'Provincia ' + P.n.codigoProvincia + ' · cantidad ' + P.n.codigoCantidad + ' · proyecto ' + P.n.sigla;
+    }
+    function llenarYa() {
+      $('#f-nombre', c).textContent = P.nombre; $('#f-ha', c).textContent = fmt.format(P.ha); $('#f-cred', c).textContent = fmt.format(P.cred);
+      $('#f-sigla', c).textContent = P.sigla; $('#f-prop', c).textContent = 'Propietario de ejemplo S.A.'; mostrarSimbolo();
+    }
+    function cargar() {
+      if (cargado) return; cargado = true; llenarYa(); boton.disabled = true; boton.textContent = 'Cargado';
+      $('#f-nota', c).textContent = 'Proyecto cargado y enviado a firma.'; aviso('Proyecto cargado. Ahora lo firma el equipo de la provincia.'); listoParaSeguir();
+    }
+    boton.addEventListener('click', cargar);
+    (async function () {
+      if (reducido) { llenarYa(); return; }
+      if (!(await escribir($('#f-nombre', c), P.nombre, t, 38))) return;
+      if (!(await escribir($('#f-ha', c), fmt.format(P.ha), t, 70))) return;
+      if (!(await escribir($('#f-cred', c), fmt.format(P.cred), t, 70))) return;
+      if (!(await escribir($('#f-sigla', c), P.sigla, t, 90))) return;
+      mostrarSimbolo();
+      if (!(await escribir($('#f-prop', c), 'Propietario de ejemplo S.A.', t, 24))) return;
+      boton.classList.add('pulsa');
+    })();
+  }
+
+  /* ---------- pasos 2 y 3: firmas (provincia y Nación) ---------- */
+  function montarFirmas(c, cfg) {
+    c.innerHTML = pantalla(cfg.rol, 'pend',
+      '<div class="p-card"><div class="p-card-cab"><h4>' + esc(P.nombre) + '</h4><span class="p-pill curso" id="e-pill">Esperando firmas (0 de ' + cfg.umbral + ')</span></div>' +
+      '<p class="p-sub">' + cfg.sub + '</p>' +
+      '<dl class="p-datos"><div><dt>Superficie</dt><dd>' + fmt.format(P.ha) + ' hectáreas</dd></div><div><dt>Créditos estimados</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Token</dt><dd class="mono">' + P.n.simbolo + '</dd></div></dl>' +
+      '<div class="p-firmantes">' + cfg.firmantes.map(function (n, i) {
+        return '<div class="p-firmante" data-i="' + i + '"><i>' + iniciales(n) + '</i><span>' + esc(n) + '</span><span class="lado"><button type="button" class="p-btn ghost chico" data-firmar="' + i + '">Firmar</button></span></div>';
+      }).join('') + '</div>' +
+      '<div class="p-acciones"><button type="button" class="p-btn primario" id="e-enviar" disabled>' + cfg.enviar + '</button><span class="p-nota" id="e-nota"></span></div></div>');
+    var firmas = 0, enviado = false;
+    var pill = $('#e-pill', c), enviar = $('#e-enviar', c), nota = $('#e-nota', c);
+    c.querySelectorAll('[data-firmar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (enviado) return;
+        var fila = b.closest('.p-firmante'); fila.classList.add('firmo');
+        b.parentNode.innerHTML = '<span class="p-firmo">✓ Firmó</span>';
+        firmas++;
+        if (firmas < cfg.umbral) {
+          pill.textContent = 'Esperando firmas (' + firmas + ' de ' + cfg.umbral + ')';
+        } else {
+          pill.className = 'p-pill listo'; pill.textContent = 'Listo para enviar';
+          enviar.disabled = false; enviar.classList.add('pulsa');
+          nota.textContent = 'Juntó las ' + cfg.umbral + ' firmas necesarias.'; nota.className = 'p-nota';
+          c.querySelectorAll('[data-firmar]').forEach(function (r) { r.parentNode.innerHTML = '<span class="p-nofalta">No hace falta</span>'; });
+        }
+      });
+    });
+    enviar.addEventListener('click', function () {
+      enviado = true; enviar.disabled = true; enviar.classList.remove('pulsa'); enviar.textContent = cfg.hecho;
+      pill.className = 'p-pill listo'; pill.textContent = cfg.pillFinal; nota.textContent = cfg.notaFinal; aviso(cfg.aviso); listoParaSeguir();
+    });
+  }
+  function montarProvincia(c) {
+    montarFirmas(c, { rol: 'provincia', umbral: 2, sub: 'Cargado por el equipo de la provincia. Faltan las firmas para enviarlo a Nación.',
+      firmantes: ['Funcionario/a provincial', 'Auditor/a 1', 'Auditor/a 2'], enviar: 'Enviar a Nación', hecho: 'Remitido',
+      pillFinal: 'Remitido a Nación', notaFinal: 'Pasó a Nación solo. Nadie tuvo que cargarlo de nuevo.', aviso: 'Remitido. Ahora lo recibe Nación.' });
+  }
+  function montarNacion(c) {
+    montarFirmas(c, { rol: 'nacion', umbral: 2, sub: 'Llegó desde Neuquén. La propuesta se creó automáticamente, con otro equipo de firmantes.',
+      firmantes: ['Auditor/a nacional 1', 'Auditor/a nacional 2', 'Auditor/a nacional 3'], enviar: 'Aprobar emisión', hecho: 'Aprobado',
+      pillFinal: 'Aprobado por Nación', notaFinal: 'Nación aprobó. La emisión de créditos arranca sola.', aviso: 'Aprobado. Se emiten los créditos.' });
+  }
+
+  /* ---------- paso 4: emisión automática ---------- */
+  var ITEMS = [
+    'Se crea el token del proyecto',
+    'Se emiten ' + fmt.format(P.cred) + ' créditos a la bóveda de Neuquén',
+    'Se escribe el nombre en la blockchain: <code>' + P.n.simbolo + '</code>',
+    'Se cierra la emisión: no se pueden crear más créditos'
+  ];
+  function tablaCreditos(opts) {
+    return '<div class="p-tabla"><div class="p-fila cab"><span>Proyecto</span><span>Token</span><span class="p-num">Disponibles</span></div>' +
+      '<div class="p-fila' + (opts.nueva ? ' nueva' : '') + '"><div class="proy">' + esc(P.nombre) + (opts.nueva ? '<span class="p-etq">Nuevo</span>' : '') + '</div>' +
+      '<div><span class="mono">' + P.n.simbolo + '</span><small>' + esc(P.n.nombre) + '</small><span class="p-chain">✓ Nombre en la blockchain · emisión cerrada</span></div>' +
+      '<div class="p-num"><strong id="r-disp">' + fmt.format(opts.disp) + '</strong><small id="r-detalle">' + opts.detalle + '</small>' + (opts.boton || '') + '</div></div></div>';
+  }
+  function montarEmision(c) {
+    var t = token;
+    c.innerHTML = pantalla('provincia', 'cred',
+      '<ul class="p-lista" id="m-lista">' + ITEMS.map(function (x) { return '<li><b>✓</b><span>' + x + '</span></li>'; }).join('') + '</ul>' +
+      '<div id="m-final" hidden></div><div class="p-acciones"><button type="button" class="p-btn ghost chico" id="m-repetir">Ver otra vez</button></div>');
+    var lis = c.querySelectorAll('#m-lista li'), final = $('#m-final', c);
+    function mostrarFinal() {
+      final.hidden = false;
+      final.innerHTML = '<div class="p-stats"><div><span class="gran">' + fmt.format(P.cred) + '</span><span class="gran-txt">créditos disponibles</span></div>' +
+        '<dl><div><dt>Emitidos</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Retirados</dt><dd>0</dd></div></dl></div>' +
+        '<p class="p-eq">Cada crédito equivale a una tonelada de CO₂. El saldo se lee de la blockchain.</p>' + tablaCreditos({ nueva: true, disp: P.cred, detalle: 'de ' + fmt.format(P.cred) + ' emitidos' });
+      listoParaSeguir();
+    }
+    async function correr() {
+      final.hidden = true; lis.forEach(function (l) { l.classList.remove('ok'); });
+      for (var i = 0; i < lis.length; i++) {
+        await sleep(i === 0 ? 450 : 750); if (t !== token) return; lis[i].classList.add('ok');
+      }
+      await sleep(350); if (t !== token) return; mostrarFinal();
+    }
+    $('#m-repetir', c).addEventListener('click', function () { token++; t = token; correr(); });
+    if (reducido) { lis.forEach(function (l) { l.classList.add('ok'); }); mostrarFinal(); } else correr();
+  }
+
+  /* ---------- paso 5: retiro (quema) ---------- */
+  function montarRetiro(c) {
+    var t = token, CANT = 500;
+    var estado = { fase: 0, firmas: 0 };
+    function numero(el, desde, hasta) {
+      if (reducido) { el.textContent = fmt.format(hasta); return; }
+      var ini = performance.now(), dur = 1100;
+      (function paso(ahora) {
+        if (t !== token) return;
+        var k = Math.min(1, (ahora - ini) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = fmt.format(Math.round(desde + (hasta - desde) * e));
+        if (k < 1) requestAnimationFrame(paso);
+      })(ini);
+    }
+    function dibujar() {
+      var enCurso = estado.fase === 1, hecho = estado.fase === 2, disp = hecho ? P.cred - CANT : P.cred;
+      var sec = '';
+      if (estado.fase >= 1) {
+        var listo = estado.firmas >= 2;
+        sec = '<h5 class="p-h">Retiros</h5><div class="p-tabla"><div class="p-fila"><div class="proy">' + fmt.format(CANT) + ' créditos<small>Compensación de flota 2026 · Para Empresa de ejemplo S.A.</small></div>' +
+          '<div><span class="p-pill ' + (hecho ? 'listo' : listo ? 'listo' : 'curso') + '">' + (hecho ? 'Retirado' : listo ? 'Listo para retirar' : 'Esperando firmas (' + estado.firmas + ' de 2)') + '</span></div>' +
+          '<div>' + (hecho ? '<span class="p-firmo">✓ Quemados</span>' : listo ? '<button type="button" class="p-btn primario chico pulsa" id="q-quemar">Retirar ahora</button>' : '<button type="button" class="p-btn ghost chico" id="q-firmar">Firmar</button>') + '</div></div></div>';
+      }
+      c.innerHTML = pantalla('provincia', 'cred',
+        '<div class="p-stats"><div><span class="gran" id="q-gran">' + fmt.format(disp) + '</span><span class="gran-txt">créditos disponibles</span></div>' +
+        '<dl><div><dt>Emitidos</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Retirados</dt><dd id="q-ret">' + (hecho ? fmt.format(CANT) : '0') + '</dd></div></dl></div>' +
+        '<p class="p-eq">Retirar un crédito lo quema: deja de existir y nadie lo puede volver a contar.</p>' +
+        '<div class="p-tabla"><div class="p-fila cab"><span>Proyecto</span><span>Token</span><span class="p-num">Disponibles</span></div><div class="p-fila"><div class="proy">' + esc(P.nombre) + '</div>' +
+        '<div><span class="mono">' + P.n.simbolo + '</span><span class="p-chain">✓ Nombre en la blockchain · emisión cerrada</span></div>' +
+        '<div class="p-num"><strong>' + fmt.format(disp) + '</strong><small>de ' + fmt.format(P.cred) + ' emitidos' + (hecho ? ', ' + CANT + ' retirados' : enCurso ? ', ' + CANT + ' en retiro' : '') + '</small>' +
+        (estado.fase === 0 ? '<button type="button" class="p-btn ghost chico" id="q-abrir" style="margin-top:8px">Retirar</button>' : '') + '</div></div></div>' + sec);
+      var abrir = $('#q-abrir', c), firmar = $('#q-firmar', c), quemar = $('#q-quemar', c);
+      if (abrir) abrir.addEventListener('click', modal);
+      if (firmar) firmar.addEventListener('click', function () { estado.firmas++; dibujar(); aviso(estado.firmas >= 2 ? 'Firmado. Juntó las firmas del equipo.' : 'Firmado. Falta otra firma.'); });
+      if (quemar) quemar.addEventListener('click', function () {
+        estado.fase = 2; dibujar(); numero($('#q-gran', c), P.cred, P.cred - CANT); aviso(fmt.format(CANT) + ' créditos quemados. Quedó registrado en la blockchain.'); listoParaSeguir();
+      });
+    }
+    function modal() {
+      var m = document.createElement('div'); m.className = 'p-modal';
+      m.innerHTML = '<div class="p-dialogo" role="dialog" aria-label="Retirar créditos"><h4>Retirar créditos</h4>' +
+        '<div class="p-form" style="grid-template-columns:1fr"><div><label>Cantidad a retirar</label><div class="p-in">' + CANT + '</div></div>' +
+        '<div><label>Motivo del retiro</label><div class="p-in">Compensación de flota 2026</div></div>' +
+        '<div><label>Para quién se retiran</label><div class="p-in">Empresa de ejemplo S.A.</div></div></div>' +
+        '<p class="aviso">Retirar quema los créditos en la blockchain y no se puede deshacer. El pedido necesita la firma del equipo.</p>' +
+        '<div class="acc"><button type="button" class="p-btn ghost" id="q-cancelar">Cancelar</button><button type="button" class="p-btn primario" id="q-pedir">Pedir retiro</button></div></div>';
+      c.appendChild(m);
+      $('#q-cancelar', m).addEventListener('click', function () { m.remove(); });
+      $('#q-pedir', m).addEventListener('click', function () { estado.fase = 1; estado.firmas = 1; m.remove(); dibujar(); aviso('Retiro pedido. Falta la firma de otro integrante.'); });
+      $('#q-pedir', m).focus();
+    }
+    dibujar();
+  }
+
+  /* ---------- paso 6: registro verificable ---------- */
+  function firmaEjemplo(sem) {
+    var abc = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz', s = '', x = sem * 2654435761 % 4294967296;
+    for (var i = 0; i < 9; i++) { x = (x * 1664525 + 1013904223) % 4294967296; s += abc[x % abc.length]; if (i === 3) s += '…'; }
+    return s;
+  }
+  function montarRegistro(c) {
+    var ev = [
+      ['Carga del proyecto', 'Propuesta creada en el multisig de Neuquén'],
+      ['Firma de Auditor/a 1', 'Aprobación provincial'],
+      ['Firma de Auditor/a 2', 'Se alcanza el umbral: 2 de 3'],
+      ['Envío a Nación', 'La propuesta provincial se ejecuta'],
+      ['Aprobación nacional', 'Dos firmas de Nación'],
+      ['Emisión de ' + fmt.format(P.cred) + ' créditos', 'Token ' + P.n.simbolo + ' a la bóveda de Neuquén'],
+      ['Nombre escrito y emisión cerrada', 'Ya no se pueden crear más créditos'],
+      ['Retiro de 500 créditos', 'Quemados con la firma del equipo']
+    ];
+    c.innerHTML = pantalla('provincia', 'reg',
+      '<p class="p-intro">Cada proyecto tiene su historial: quién hizo qué, cuándo, y la transacción que lo prueba.</p>' +
+      '<ol class="p-linea">' + ev.map(function (e, i) { return '<li' + (i === ev.length - 1 ? ' class="quema"' : '') + '><div>' + e[0] + '<small>' + e[1] + '</small></div><em>' + firmaEjemplo(i + 3) + '</em></li>'; }).join('') + '</ol>' +
+      '<div class="p-json"><span class="k">"integridad"</span>: { <span class="k">"hashRegistrado"</span>: <span class="v">"9f2c…a41e"</span>, <span class="k">"hashRecalculado"</span>: <span class="v">"9f2c…a41e"</span>, <span class="k">"coincide"</span>: <span class="v">true</span> }</div>' +
+      '<div class="p-acciones"><button type="button" class="p-btn ghost chico" id="r-bajar">Descargar historial blockchain</button><span class="p-nota amb">Firmas de ejemplo</span></div>');
+    $('#r-bajar', c).addEventListener('click', function () { aviso('En la plataforma real se descarga el archivo completo, con los enlaces al explorador.'); });
+  }
+
+  /* ---------- definición de los pasos ---------- */
+  var PASOS = [
+    { t: 'La provincia carga el proyecto', montar: montarCarga,
+      txt: 'Un agente provincial completa los datos del proyecto. Mientras escribe, el sistema arma el <b>nombre del token</b>: provincia, cantidad y una sigla.',
+      bajo: 'Se abre una propuesta en el multisig de la provincia. En la blockchain queda un memo con la huella (hash) de los datos, no los datos.' },
+    { t: 'El equipo de la provincia firma', montar: montarProvincia,
+      txt: 'Cargar no alcanza. El proyecto espera las firmas de funcionarios y auditores. Con <b>2 de 3</b> firmas se puede enviar a Nación. <b>Probá firmar.</b>',
+      bajo: 'Squads V3 no deja ejecutar la propuesta hasta que junta el umbral de aprobaciones. Cada firma es una transacción.' },
+    { t: 'Nación revisa y firma por separado', montar: montarNacion,
+      txt: 'El proyecto llega a Nación sin que nadie lo cargue de nuevo. Lo tiene que aprobar <b>otro equipo, con otros firmantes</b>. Ninguna parte decide sola.',
+      bajo: 'Al ejecutarse la etapa provincial, el sistema crea la propuesta en el multisig nacional automáticamente.' },
+    { t: 'Los créditos se emiten solos', montar: montarEmision,
+      txt: 'Cuando Nación aprueba, <b>no hay un paso manual</b> que alguien pueda adelantar o saltear. Se crea el token, se acreditan los créditos y se cierra la emisión.',
+      bajo: 'Token SPL de 0 decimales (1 token = 1 tCO₂e) con nombre y símbolo en Metaplex Token Metadata. Se revoca la autoridad de emisión, así que la cantidad no puede crecer.' },
+    { t: 'Retirar es quemar', montar: montarRetiro,
+      txt: 'Para usar un crédito se lo <b>retira</b>: se destruye en la blockchain y nadie lo vuelve a contar. También necesita las firmas del equipo. <b>Probá retirar 500.</b>',
+      bajo: 'Es una propuesta del multisig con una instrucción Burn del programa SPL Token, firmada por la bóveda que guarda los créditos.' },
+    { t: 'Todo queda registrado', montar: montarRegistro,
+      txt: 'Cada paso deja una <b>firma que cualquiera puede revisar</b> en un explorador de blockchain. El historial se puede descargar y comprueba que los datos no cambiaron.',
+      bajo: 'El historial junta el registro local con lo que se lee de Solana, y recalcula la huella de los datos para compararla con la registrada.' }
+  ];
+
+  var actual = 0;
+  var barra = $('#t-prog');
+  PASOS.forEach(function (p, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Ir al paso ' + (i + 1) + ': ' + p.t);
+    b.addEventListener('click', function () { ir(i); }); barra.appendChild(b);
+  });
+  function ir(i) {
+    actual = Math.max(0, Math.min(PASOS.length - 1, i)); token++;
+    var p = PASOS[actual];
+    $('#t-num').textContent = 'PASO ' + (actual + 1) + ' DE ' + PASOS.length;
+    $('#t-titulo').textContent = p.t; $('#t-texto').innerHTML = p.txt; $('#t-bajo').textContent = p.bajo;
+    barra.querySelectorAll('button').forEach(function (b, k) { b.className = k < actual ? 'hecho' : k === actual ? 'actual' : ''; b.setAttribute('aria-current', k === actual ? 'step' : 'false'); });
+    var ant = $('#t-ant'), sig = $('#t-sig'); ant.disabled = actual === 0; sig.classList.remove('pulsa');
+    sig.textContent = actual === PASOS.length - 1 ? 'Volver al inicio ↺' : 'Siguiente →';
+    p.montar($('#t-pantalla'));
+  }
+  $('#t-ant').addEventListener('click', function () { ir(actual - 1); });
+  $('#t-sig').addEventListener('click', function () { ir(actual === PASOS.length - 1 ? 0 : actual + 1); });
+  document.addEventListener('keydown', function (e) {
+    var el = document.activeElement, tag = el && el.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    var r = $('#recorrido').getBoundingClientRect();
+    if (r.top > innerHeight * 0.6 || r.bottom < innerHeight * 0.3) return;
+    if (e.key === 'ArrowRight') ir(actual + 1); else if (e.key === 'ArrowLeft') ir(actual - 1);
+  });
+  ir(0);
+})();
+
+/* ===== Constructor de token ===== */
+(function () {
+  var N = window.RenareNombres;
+  var PROVINCIAS = ['Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Ciudad Autónoma de Buenos Aires', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'];
+  var fmt = new Intl.NumberFormat('es-AR');
+  function $(s) { return document.querySelector(s); }
+  var sel = $('#c-prov'), nom = $('#c-nombre'), cant = $('#c-cant'), rango = $('#c-rango'), sigla = $('#c-sigla'), editada = false;
+  PROVINCIAS.forEach(function (p) { var o = document.createElement('option'); o.textContent = p; if (p === 'Neuquén') o.selected = true; sel.appendChild(o); });
+  // el control deslizante es logarítmico: de 1 a 100 millones
+  function rangoACant(v) { return Math.max(1, Math.round(Math.pow(10, (v / 100) * 8))); }
+  function cantARango(n) { return Math.max(0, Math.min(100, (Math.log10(Math.max(1, n)) / 8) * 100)); }
+  rango.value = cantARango(Number(cant.value));
+  sigla.value = N.sugerirSigla(nom.value);
+
+  function pintar() {
+    var n = Math.floor(Number(cant.value)), valida = isFinite(n) && n >= 1;
+    var s = N.limpiarSigla(sigla.value), box = $('#c-simbolo');
+    if (!valida || !N.siglaValida(s)) {
+      box.innerHTML = '<div style="color:var(--bone-dim);font-size:14.5px;line-height:1.5">' + (!valida ? 'Poné una cantidad de 1 en adelante.' : 'La sigla tiene que tener 3 o 4 letras.') + '</div>';
+      $('#c-largo').textContent = '—'; $('#c-regla-cant').textContent = 'La cantidad se escribe con 3 caracteres y siempre se redondea hacia abajo.'; return;
+    }
+    var r = N.armarNombres({ provincia: sel.value, cantidad: n, sigla: s, nombreProyecto: nom.value.trim() });
+    box.innerHTML = '<div class="trozo prov"><b>' + r.codigoProvincia + '</b><span>PROVINCIA</span></div><div class="trozo cant"><b>' + r.codigoCantidad + '</b><span>CANTIDAD</span></div><div class="trozo sig"><b>' + r.sigla + '</b><span>PROYECTO</span></div>';
+    $('#c-largo').textContent = r.nombre;
+    var txt = r.codigoCantidad === '99M' ? 'Desde 100 millones el nombre marca 99M. La cantidad exacta queda en el token.' : 'La cantidad usa la letra donde iría la coma, como en las resistencias: ' + fmt.format(n) + ' se escribe ' + r.codigoCantidad + ' y siempre se redondea hacia abajo.';
+    $('#c-regla-cant').textContent = txt;
+  }
+  nom.addEventListener('input', function () { if (!editada) sigla.value = N.sugerirSigla(nom.value); pintar(); });
+  sigla.addEventListener('input', function () { var l = N.limpiarSigla(sigla.value); if (sigla.value.toUpperCase() !== l) sigla.value = l; editada = l.length > 0; pintar(); });
+  cant.addEventListener('input', function () { rango.value = cantARango(Number(cant.value)); pintar(); });
+  rango.addEventListener('input', function () { cant.value = rangoACant(Number(rango.value)); pintar(); });
+  sel.addEventListener('change', pintar);
+  $('#c-sugerir').addEventListener('click', function () { editada = false; sigla.value = N.sugerirSigla(nom.value); pintar(); });
+  pintar();
+})();
+
+/* ===== Verificador de un crédito real (lee directo de Solana Devnet) ===== */
+(function () {
+  var EJEMPLO_MINT = ''; // pegá acá la dirección de un crédito emitido para mostrar el botón de ejemplo
+  var METADATA_PROGRAM = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
+  var fmt = new Intl.NumberFormat('es-AR');
+  function $(s) { return document.querySelector(s); }
+  function esc(t) { var d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; }
+  function leerTexto(bytes, off, max) {
+    var len = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(off, true);
+    var largo = Math.min(len, max);
+    return { valor: new TextDecoder().decode(bytes.slice(off + 4, off + 4 + largo)).replace(/\0+$/g, '').trim(), siguiente: off + 4 + len };
+  }
+  // Cuenta de un mint (SPL Token): autoridad de emisión (opcional), cantidad existente y decimales.
+  function decodificarMint(bytes) {
+    var v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return { emisionCerrada: v.getUint32(0, true) === 0, supply: v.getBigUint64(36, true), decimales: bytes[44] };
+  }
+  // Cuenta de metadata (Metaplex): nombre y símbolo.
+  function decodificarMetadata(bytes) {
+    var n = leerTexto(bytes, 65, 32), s = leerTexto(bytes, n.siguiente, 10);
+    return { nombre: n.valor, simbolo: s.valor };
+  }
+  window.RenareVerif = { decodificarMint: decodificarMint, decodificarMetadata: decodificarMetadata };
+
+  var salida = $('#v-salida');
+  function mostrar(html) { salida.innerHTML = html; salida.classList.add('ver'); }
+  async function consultar(texto) {
+    var dir = String(texto || '').trim();
+    var sw = window.solanaWeb3;
+    if (!sw) { mostrar('<div class="error">No se pudo cargar la librería de Solana. Recargá la página.</div>'); return; }
+    var mint;
+    try { mint = new sw.PublicKey(dir); } catch (e) { mostrar('<div class="error">Esa dirección no es válida. Copiala completa desde un explorador.</div>'); return; }
+    mostrar('<div class="error" style="color:var(--bone-dim)">Consultando la blockchain…</div>');
+    try {
+      var conn = new sw.Connection('https://api.devnet.solana.com', 'confirmed');
+      var cuenta = await conn.getAccountInfo(mint);
+      if (!cuenta) { mostrar('<div class="error">No encontramos ese token en Devnet.</div>'); return; }
+      if (cuenta.data.length < 82) { mostrar('<div class="error">Esa dirección existe, pero no es un token.</div>'); return; }
+      var m = decodificarMint(new Uint8Array(cuenta.data));
+      var pda = sw.PublicKey.findProgramAddressSync([new TextEncoder().encode('metadata'), new sw.PublicKey(METADATA_PROGRAM).toBytes(), mint.toBytes()], new sw.PublicKey(METADATA_PROGRAM))[0];
+      var cm = await conn.getAccountInfo(pda), meta = null;
+      if (cm && cm.data.length > 100) meta = decodificarMetadata(new Uint8Array(cm.data));
+      var cantidad = Number(m.supply) / Math.pow(10, m.decimales);
+      mostrar(
+        (meta ? '<h4>' + esc(meta.nombre) + '</h4><div class="sim">' + esc(meta.simbolo) + '</div>' : '<h4>Token sin nombre</h4><div class="error" style="color:var(--bone-dim)">Existe, pero no tiene un nombre escrito en la blockchain.</div>') +
+        '<dl><div><dt>CRÉDITOS QUE EXISTEN</dt><dd>' + fmt.format(cantidad) + '</dd></div>' +
+        '<div><dt>EMISIÓN</dt><dd>' + (m.emisionCerrada ? 'Cerrada: no se pueden crear más' : 'Abierta: se pueden crear más') + '</dd></div></dl>' +
+        '<div class="pie"><a href="https://solscan.io/token/' + esc(mint.toBase58()) + '?cluster=devnet" target="_blank" rel="noopener">Ver en Solscan ↗</a></div>');
+    } catch (err) {
+      console.error(err);
+      mostrar('<div class="error">No se pudo consultar Devnet en este momento. Probá de nuevo en unos segundos.</div>');
+    }
+  }
+  $('#v-form').addEventListener('submit', function (e) { e.preventDefault(); consultar($('#v-mint').value); });
+  if (EJEMPLO_MINT) {
+    var b = $('#v-ejemplo'); b.hidden = false;
+    b.addEventListener('click', function () { $('#v-mint').value = EJEMPLO_MINT; consultar(EJEMPLO_MINT); });
+  }
+})();
+</script>
 
 <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <script>
@@ -491,6 +1358,7 @@
   cargarEstado();
   setInterval(cargarEstado, 8000);
 })();
+
 </script>
 </body>
 </html>
