@@ -466,6 +466,22 @@
     .p-barra{ flex-direction:column; gap:3px; }
     .p-sim{ text-align:left; }
   }
+
+  /* ---- selector de idioma ---- */
+  .nav-der{ display:flex; align-items:center; gap:10px; }
+  .idioma{ display:inline-flex; border:1px solid var(--line); border-radius:20px; overflow:hidden; }
+  .idioma button{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.06em; cursor:pointer;
+    background:transparent; color:var(--bone-dim); border:0; padding:9px 13px; transition:all .2s;
+  }
+  .idioma button:hover{ color:var(--bone); }
+  .idioma button[aria-pressed="true"]{ color:var(--oil); background:var(--flare); }
+  .idioma button:focus-visible{ outline:2px solid var(--flare); outline-offset:-2px; }
+  @media (max-width:520px){
+    .nav-der{ gap:7px; }
+    .nav-back{ padding:8px 12px; font-size:11.5px; }
+    .idioma button{ padding:8px 10px; font-size:11.5px; }
+  }
   @media (prefers-reduced-motion:reduce){
     html{ scroll-behavior:auto; }
     .btn-t.pulsa, .live-dot, .p-in.escribiendo::after{ animation:none; }
@@ -477,7 +493,12 @@
 
 <nav>
   <a class="logo" href="index.html"><img src="pumptree-logo.webp" alt="PumpTree logo"> <b>PUMPTREE</b></a>
-  <a class="nav-back" href="index.html">← Volver al sitio</a>
+  <div class="nav-der">
+    <div class="idioma" role="group" aria-label="Idioma / Language">
+      <button type="button" data-l="es" aria-pressed="true">ES</button><button type="button" data-l="en" aria-pressed="false">EN</button>
+    </div>
+    <a class="nav-back" href="index.html">← Volver al sitio</a>
+  </div>
 </nav>
 
 <section class="hero">
@@ -544,13 +565,13 @@
       <div>
         <label for="c-sigla">SIGLA DEL PROYECTO (3 O 4 LETRAS)</label>
         <input type="text" id="c-sigla" class="mono-in" maxlength="8" autocomplete="off" spellcheck="false">
-        <div class="pista">La provincia la elige al cargar el proyecto. <button type="button" class="link-chico" id="c-sugerir">Usar la sugerida</button></div>
+        <div class="pista"><span id="c-pista-t">La provincia la elige al cargar el proyecto.</span> <button type="button" class="link-chico" id="c-sugerir">Usar la sugerida</button></div>
       </div>
     </div>
     <div class="resultado">
       <div class="sello">SÍMBOLO EN LA BLOCKCHAIN</div>
       <div class="simbolo" id="c-simbolo" aria-live="polite"></div>
-      <div class="largo">Nombre completo: <code id="c-largo"></code></div>
+      <div class="largo"><span id="c-largo-t">Nombre completo:</span> <code id="c-largo"></code></div>
       <div class="reglas">
         <div>Siempre son 10 caracteres como máximo, el límite de Solana.</div>
         <div id="c-regla-cant"></div>
@@ -655,6 +676,31 @@
   <div class="credit">Tecnología y prototipo desarrollados por el equipo de <a href="index.html">PumpTree</a> — Vaca Muerta, Neuquén.</div>
   <div class="disclaimer">Este prototipo corre en Solana Devnet, una red pública de pruebas sin valor monetario real, con el único fin de demostrar la viabilidad técnica de un registro federado de créditos de carbono con doble aprobación multisig. Las pantallas del recorrido son una simulación con datos ficticios. No representa un sistema oficial del Estado.</div>
 </footer>
+
+<script>
+/* ===== Idioma: español (por defecto) / inglés ===== */
+(function () {
+  var guardado = null;
+  try { guardado = localStorage.getItem('renare-lang'); } catch (e) {}
+  var url = null;
+  try { url = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+  var lang = (url === 'en' || url === 'es') ? url : (guardado === 'en' || guardado === 'es' ? guardado : 'es');
+  var oyentes = [];
+  var nfs = { es: new Intl.NumberFormat('es-AR'), en: new Intl.NumberFormat('en-US') };
+  window.I = {
+    get lang() { return lang; },
+    nf: function () { return nfs[lang]; },
+    onChange: function (f) { oyentes.push(f); },
+    set: function (l) {
+      if (l !== 'es' && l !== 'en' || l === lang) return;
+      lang = l;
+      try { localStorage.setItem('renare-lang', l); } catch (e) {}
+      oyentes.forEach(function (f) { f(); });
+    }
+  };
+  window.T = function (es, en) { return lang === 'en' ? en : es; };
+})();
+</script>
 
 <script>
 // nombres.js — cómo se llaman los tokens de crédito de ReNaRe.
@@ -803,7 +849,7 @@
 (function () {
   var N = window.RenareNombres;
   var $ = function (s, r) { return (r || document).querySelector(s); };
-  var fmt = new Intl.NumberFormat('es-AR');
+  var fmt = { format: function (n) { return I.nf().format(n); } };
   var reducido = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, reducido ? 0 : ms); }); };
   var ISOTIPO = 'data:image/png;base64,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';
@@ -818,10 +864,10 @@
 
   function pantalla(rol, tab, cuerpo) {
     var prov = rol === 'provincia';
-    var tabs = (prov ? [['nuevo', 'Proyecto nuevo']] : []).concat([['pend', 'Pendientes'], ['reg', 'Registro'], ['cred', 'Créditos emitidos']]);
-    return '<div class="p-barra"><span>renare · panel ' + (prov ? 'de la provincia' : 'de Nación') + '</span><span class="p-sim">SIMULACIÓN · DATOS FICTICIOS</span></div>' +
+    var tabs = (prov ? [['nuevo', T('Proyecto nuevo', 'New project')]] : []).concat([['pend', T('Pendientes', 'Pending')], ['reg', T('Registro', 'Registry')], ['cred', T('Créditos emitidos', 'Issued credits')]]);
+    return '<div class="p-barra"><span>' + (prov ? T('renare · panel de la provincia', 'renare · province panel') : T('renare · panel de Nación', 'renare · national panel')) + '</span><span class="p-sim">' + T('SIMULACIÓN · DATOS FICTICIOS', 'SIMULATION · SAMPLE DATA') + '</span></div>' +
       '<div class="p-top"><div class="p-marca"><img src="' + ISOTIPO + '" alt=""><b>RENARE</b></div>' +
-      '<div class="p-user"><span>' + (prov ? 'Equipo de Neuquén' : 'Equipo nacional') + '<small>' + (prov ? 'Provincia' : 'Nación') + '</small></span><i>' + (prov ? 'NQ' : 'AR') + '</i></div></div>' +
+      '<div class="p-user"><span>' + (prov ? T('Equipo de Neuquén', 'Neuquén team') : T('Equipo nacional', 'National team')) + '<small>' + (prov ? T('Provincia', 'Province') : T('Nación', 'Nation')) + '</small></span><i>' + (prov ? 'NQ' : 'AR') + '</i></div></div>' +
       '<div class="p-tabs">' + tabs.map(function (t) { return '<span class="p-tab' + (t[0] === tab ? ' on' : '') + '">' + t[1] + '</span>'; }).join('') + '</div>' +
       '<div class="p-cont">' + cuerpo + '</div>';
   }
@@ -846,28 +892,28 @@
   function montarCarga(c) {
     var t = token;
     c.innerHTML = pantalla('provincia', 'nuevo',
-      '<p class="p-intro">Los datos quedan registrados y el proyecto pasa a Nación automáticamente cuando tu equipo lo firme.</p>' +
+      '<p class="p-intro">' + T('Los datos quedan registrados y el proyecto pasa a Nación automáticamente cuando tu equipo lo firme.', 'The data is recorded and the project moves on to the national level automatically once your team signs it.') + '</p>' +
       '<div class="p-form">' +
-      '<div class="full"><label>Nombre del proyecto</label><div class="p-in" id="f-nombre"></div></div>' +
-      '<div><label>Hectáreas</label><div class="p-in" id="f-ha"></div></div>' +
-      '<div><label>Créditos estimados</label><div class="p-in" id="f-cred"></div></div>' +
-      '<div><label>Sigla del proyecto</label><div class="p-in mono" id="f-sigla"></div><span class="p-ayuda">3 o 4 letras. Se sugiere sola; se puede cambiar.</span></div>' +
-      '<div class="p-vista"><span>Así se va a llamar el token</span><b class="vacio" id="f-simbolo">Completá nombre, créditos y sigla</b><small id="f-partes"></small></div>' +
-      '<div class="full"><label>Propietario del predio</label><div class="p-in" id="f-prop"></div></div>' +
+      '<div class="full"><label>' + T('Nombre del proyecto', 'Project name') + '</label><div class="p-in" id="f-nombre"></div></div>' +
+      '<div><label>' + T('Hectáreas', 'Hectares') + '</label><div class="p-in" id="f-ha"></div></div>' +
+      '<div><label>' + T('Créditos estimados', 'Estimated credits') + '</label><div class="p-in" id="f-cred"></div></div>' +
+      '<div><label>' + T('Sigla del proyecto', 'Project code') + '</label><div class="p-in mono" id="f-sigla"></div><span class="p-ayuda">' + T('3 o 4 letras. Se sugiere sola; se puede cambiar.', '3 or 4 letters. It is suggested automatically; you can change it.') + '</span></div>' +
+      '<div class="p-vista"><span>' + T('Así se va a llamar el token', 'This is what the token will be called') + '</span><b class="vacio" id="f-simbolo">' + T('Completá nombre, créditos y sigla', 'Fill in name, credits and code') + '</b><small id="f-partes"></small></div>' +
+      '<div class="full"><label>' + T('Propietario del predio', 'Land owner') + '</label><div class="p-in" id="f-prop"></div></div>' +
       '</div>' +
-      '<div class="p-acciones"><button class="p-btn primario" id="f-boton" type="button">Cargar proyecto</button><span class="p-nota" id="f-nota"></span></div>');
+      '<div class="p-acciones"><button class="p-btn primario" id="f-boton" type="button">' + T('Cargar proyecto', 'Submit project') + '</button><span class="p-nota" id="f-nota"></span></div>');
     var boton = $('#f-boton', c), cargado = false;
     function mostrarSimbolo() {
       var s = $('#f-simbolo', c); s.textContent = P.n.simbolo; s.classList.remove('vacio');
-      $('#f-partes', c).textContent = 'Provincia ' + P.n.codigoProvincia + ' · cantidad ' + P.n.codigoCantidad + ' · proyecto ' + P.n.sigla;
+      $('#f-partes', c).textContent = T('Provincia ' + P.n.codigoProvincia + ' · cantidad ' + P.n.codigoCantidad + ' · proyecto ' + P.n.sigla, 'Province ' + P.n.codigoProvincia + ' · amount ' + P.n.codigoCantidad + ' · project ' + P.n.sigla);
     }
     function llenarYa() {
       $('#f-nombre', c).textContent = P.nombre; $('#f-ha', c).textContent = fmt.format(P.ha); $('#f-cred', c).textContent = fmt.format(P.cred);
-      $('#f-sigla', c).textContent = P.sigla; $('#f-prop', c).textContent = 'Propietario de ejemplo S.A.'; mostrarSimbolo();
+      $('#f-sigla', c).textContent = P.sigla; $('#f-prop', c).textContent = T('Propietario de ejemplo S.A.', 'Sample Owner Inc.'); mostrarSimbolo();
     }
     function cargar() {
-      if (cargado) return; cargado = true; llenarYa(); boton.disabled = true; boton.textContent = 'Cargado';
-      $('#f-nota', c).textContent = 'Proyecto cargado y enviado a firma.'; aviso('Proyecto cargado. Ahora lo firma el equipo de la provincia.'); listoParaSeguir();
+      if (cargado) return; cargado = true; llenarYa(); boton.disabled = true; boton.textContent = T('Cargado', 'Submitted');
+      $('#f-nota', c).textContent = T('Proyecto cargado y enviado a firma.', 'Project submitted and sent for signing.'); aviso(T('Proyecto cargado. Ahora lo firma el equipo de la provincia.', 'Project submitted. Now the province team signs it.')); listoParaSeguir();
     }
     boton.addEventListener('click', cargar);
     (async function () {
@@ -877,7 +923,7 @@
       if (!(await escribir($('#f-cred', c), fmt.format(P.cred), t, 70))) return;
       if (!(await escribir($('#f-sigla', c), P.sigla, t, 90))) return;
       mostrarSimbolo();
-      if (!(await escribir($('#f-prop', c), 'Propietario de ejemplo S.A.', t, 24))) return;
+      if (!(await escribir($('#f-prop', c), T('Propietario de ejemplo S.A.', 'Sample Owner Inc.'), t, 24))) return;
       boton.classList.add('pulsa');
     })();
   }
@@ -885,11 +931,11 @@
   /* ---------- pasos 2 y 3: firmas (provincia y Nación) ---------- */
   function montarFirmas(c, cfg) {
     c.innerHTML = pantalla(cfg.rol, 'pend',
-      '<div class="p-card"><div class="p-card-cab"><h4>' + esc(P.nombre) + '</h4><span class="p-pill curso" id="e-pill">Esperando firmas (0 de ' + cfg.umbral + ')</span></div>' +
+      '<div class="p-card"><div class="p-card-cab"><h4>' + esc(P.nombre) + '</h4><span class="p-pill curso" id="e-pill">' + T('Esperando firmas (0 de ' + cfg.umbral + ')', 'Awaiting signatures (0 of ' + cfg.umbral + ')') + '</span></div>' +
       '<p class="p-sub">' + cfg.sub + '</p>' +
-      '<dl class="p-datos"><div><dt>Superficie</dt><dd>' + fmt.format(P.ha) + ' hectáreas</dd></div><div><dt>Créditos estimados</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Token</dt><dd class="mono">' + P.n.simbolo + '</dd></div></dl>' +
+      '<dl class="p-datos"><div><dt>' + T('Superficie', 'Area') + '</dt><dd>' + fmt.format(P.ha) + ' ' + T('hectáreas', 'hectares') + '</dd></div><div><dt>' + T('Créditos estimados', 'Estimated credits') + '</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Token</dt><dd class="mono">' + P.n.simbolo + '</dd></div></dl>' +
       '<div class="p-firmantes">' + cfg.firmantes.map(function (n, i) {
-        return '<div class="p-firmante" data-i="' + i + '"><i>' + iniciales(n) + '</i><span>' + esc(n) + '</span><span class="lado"><button type="button" class="p-btn ghost chico" data-firmar="' + i + '">Firmar</button></span></div>';
+        return '<div class="p-firmante" data-i="' + i + '"><i>' + iniciales(n) + '</i><span>' + esc(n) + '</span><span class="lado"><button type="button" class="p-btn ghost chico" data-firmar="' + i + '">' + T('Firmar', 'Sign') + '</button></span></div>';
       }).join('') + '</div>' +
       '<div class="p-acciones"><button type="button" class="p-btn primario" id="e-enviar" disabled>' + cfg.enviar + '</button><span class="p-nota" id="e-nota"></span></div></div>');
     var firmas = 0, enviado = false;
@@ -898,15 +944,15 @@
       b.addEventListener('click', function () {
         if (enviado) return;
         var fila = b.closest('.p-firmante'); fila.classList.add('firmo');
-        b.parentNode.innerHTML = '<span class="p-firmo">✓ Firmó</span>';
+        b.parentNode.innerHTML = '<span class="p-firmo">' + T('✓ Firmó', '✓ Signed') + '</span>';
         firmas++;
         if (firmas < cfg.umbral) {
-          pill.textContent = 'Esperando firmas (' + firmas + ' de ' + cfg.umbral + ')';
+          pill.textContent = T('Esperando firmas (' + firmas + ' de ' + cfg.umbral + ')', 'Awaiting signatures (' + firmas + ' of ' + cfg.umbral + ')');
         } else {
-          pill.className = 'p-pill listo'; pill.textContent = 'Listo para enviar';
+          pill.className = 'p-pill listo'; pill.textContent = T('Listo para enviar', 'Ready to send');
           enviar.disabled = false; enviar.classList.add('pulsa');
-          nota.textContent = 'Juntó las ' + cfg.umbral + ' firmas necesarias.'; nota.className = 'p-nota';
-          c.querySelectorAll('[data-firmar]').forEach(function (r) { r.parentNode.innerHTML = '<span class="p-nofalta">No hace falta</span>'; });
+          nota.textContent = T('Juntó las ' + cfg.umbral + ' firmas necesarias.', 'It has the ' + cfg.umbral + ' signatures it needs.'); nota.className = 'p-nota';
+          c.querySelectorAll('[data-firmar]').forEach(function (r) { r.parentNode.innerHTML = '<span class="p-nofalta">' + T('No hace falta', 'Not needed') + '</span>'; });
         }
       });
     });
@@ -916,40 +962,42 @@
     });
   }
   function montarProvincia(c) {
-    montarFirmas(c, { rol: 'provincia', umbral: 2, sub: 'Cargado por el equipo de la provincia. Faltan las firmas para enviarlo a Nación.',
-      firmantes: ['Funcionario/a provincial', 'Auditor/a 1', 'Auditor/a 2'], enviar: 'Enviar a Nación', hecho: 'Remitido',
-      pillFinal: 'Remitido a Nación', notaFinal: 'Pasó a Nación solo. Nadie tuvo que cargarlo de nuevo.', aviso: 'Remitido. Ahora lo recibe Nación.' });
+    montarFirmas(c, { rol: 'provincia', umbral: 2, sub: T('Cargado por el equipo de la provincia. Faltan las firmas para enviarlo a Nación.', 'Submitted by the province team. It needs signatures before it can go to the national level.'),
+      firmantes: [T('Funcionario/a provincial', 'Provincial official'), T('Auditor/a 1', 'Auditor 1'), T('Auditor/a 2', 'Auditor 2')], enviar: T('Enviar a Nación', 'Send to national level'), hecho: T('Remitido', 'Sent'),
+      pillFinal: T('Remitido a Nación', 'Sent to national level'), notaFinal: T('Pasó a Nación solo. Nadie tuvo que cargarlo de nuevo.', 'It moved on to the national level by itself. Nobody had to enter it again.'), aviso: T('Remitido. Ahora lo recibe Nación.', 'Sent. The national level receives it now.') });
   }
   function montarNacion(c) {
-    montarFirmas(c, { rol: 'nacion', umbral: 2, sub: 'Llegó desde Neuquén. La propuesta se creó automáticamente, con otro equipo de firmantes.',
-      firmantes: ['Auditor/a nacional 1', 'Auditor/a nacional 2', 'Auditor/a nacional 3'], enviar: 'Aprobar emisión', hecho: 'Aprobado',
-      pillFinal: 'Aprobado por Nación', notaFinal: 'Nación aprobó. La emisión de créditos arranca sola.', aviso: 'Aprobado. Se emiten los créditos.' });
+    montarFirmas(c, { rol: 'nacion', umbral: 2, sub: T('Llegó desde Neuquén. La propuesta se creó automáticamente, con otro equipo de firmantes.', 'It arrived from Neuquén. The proposal was created automatically, with a different team of signers.'),
+      firmantes: [T('Auditor/a nacional 1', 'National auditor 1'), T('Auditor/a nacional 2', 'National auditor 2'), T('Auditor/a nacional 3', 'National auditor 3')], enviar: T('Aprobar emisión', 'Approve issuance'), hecho: T('Aprobado', 'Approved'),
+      pillFinal: T('Aprobado por Nación', 'Approved by the national level'), notaFinal: T('Nación aprobó. La emisión de créditos arranca sola.', 'The national level approved. Credit issuance starts by itself.'), aviso: T('Aprobado. Se emiten los créditos.', 'Approved. The credits are being issued.') });
   }
 
   /* ---------- paso 4: emisión automática ---------- */
-  var ITEMS = [
-    'Se crea el token del proyecto',
-    'Se emiten ' + fmt.format(P.cred) + ' créditos a la bóveda de Neuquén',
-    'Se escribe el nombre en la blockchain: <code>' + P.n.simbolo + '</code>',
-    'Se cierra la emisión: no se pueden crear más créditos'
-  ];
+  function items() {
+    return [
+      T('Se crea el token del proyecto', 'The project\'s token is created'),
+      T('Se emiten ' + fmt.format(P.cred) + ' créditos a la bóveda de Neuquén', fmt.format(P.cred) + ' credits are issued to Neuquén\'s vault'),
+      T('Se escribe el nombre en la blockchain: <code>' + P.n.simbolo + '</code>', 'The name is written on the blockchain: <code>' + P.n.simbolo + '</code>'),
+      T('Se cierra la emisión: no se pueden crear más créditos', 'Issuance is closed: no more credits can be created')
+    ];
+  }
   function tablaCreditos(opts) {
-    return '<div class="p-tabla"><div class="p-fila cab"><span>Proyecto</span><span>Token</span><span class="p-num">Disponibles</span></div>' +
-      '<div class="p-fila' + (opts.nueva ? ' nueva' : '') + '"><div class="proy">' + esc(P.nombre) + (opts.nueva ? '<span class="p-etq">Nuevo</span>' : '') + '</div>' +
-      '<div><span class="mono">' + P.n.simbolo + '</span><small>' + esc(P.n.nombre) + '</small><span class="p-chain">✓ Nombre en la blockchain · emisión cerrada</span></div>' +
+    return '<div class="p-tabla"><div class="p-fila cab"><span>' + T('Proyecto', 'Project') + '</span><span>Token</span><span class="p-num">' + T('Disponibles', 'Available') + '</span></div>' +
+      '<div class="p-fila' + (opts.nueva ? ' nueva' : '') + '"><div class="proy">' + esc(P.nombre) + (opts.nueva ? '<span class="p-etq">' + T('Nuevo', 'New') + '</span>' : '') + '</div>' +
+      '<div><span class="mono">' + P.n.simbolo + '</span><small>' + esc(P.n.nombre) + '</small><span class="p-chain">' + T('✓ Nombre en la blockchain · emisión cerrada', '✓ Name on the blockchain · issuance closed') + '</span></div>' +
       '<div class="p-num"><strong id="r-disp">' + fmt.format(opts.disp) + '</strong><small id="r-detalle">' + opts.detalle + '</small>' + (opts.boton || '') + '</div></div></div>';
   }
   function montarEmision(c) {
     var t = token;
     c.innerHTML = pantalla('provincia', 'cred',
-      '<ul class="p-lista" id="m-lista">' + ITEMS.map(function (x) { return '<li><b>✓</b><span>' + x + '</span></li>'; }).join('') + '</ul>' +
-      '<div id="m-final" hidden></div><div class="p-acciones"><button type="button" class="p-btn ghost chico" id="m-repetir">Ver otra vez</button></div>');
+      '<ul class="p-lista" id="m-lista">' + items().map(function (x) { return '<li><b>✓</b><span>' + x + '</span></li>'; }).join('') + '</ul>' +
+      '<div id="m-final" hidden></div><div class="p-acciones"><button type="button" class="p-btn ghost chico" id="m-repetir">' + T('Ver otra vez', 'Watch again') + '</button></div>');
     var lis = c.querySelectorAll('#m-lista li'), final = $('#m-final', c);
     function mostrarFinal() {
       final.hidden = false;
-      final.innerHTML = '<div class="p-stats"><div><span class="gran">' + fmt.format(P.cred) + '</span><span class="gran-txt">créditos disponibles</span></div>' +
-        '<dl><div><dt>Emitidos</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Retirados</dt><dd>0</dd></div></dl></div>' +
-        '<p class="p-eq">Cada crédito equivale a una tonelada de CO₂. El saldo se lee de la blockchain.</p>' + tablaCreditos({ nueva: true, disp: P.cred, detalle: 'de ' + fmt.format(P.cred) + ' emitidos' });
+      final.innerHTML = '<div class="p-stats"><div><span class="gran">' + fmt.format(P.cred) + '</span><span class="gran-txt">' + T('créditos disponibles', 'credits available') + '</span></div>' +
+        '<dl><div><dt>' + T('Emitidos', 'Issued') + '</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>' + T('Retirados', 'Retired') + '</dt><dd>0</dd></div></dl></div>' +
+        '<p class="p-eq">' + T('Cada crédito equivale a una tonelada de CO₂. El saldo se lee de la blockchain.', 'Each credit equals one tonne of CO₂. The balance is read from the blockchain.') + '</p>' + tablaCreditos({ nueva: true, disp: P.cred, detalle: T('de ' + fmt.format(P.cred) + ' emitidos', 'of ' + fmt.format(P.cred) + ' issued') });
       listoParaSeguir();
     }
     async function correr() {
@@ -982,36 +1030,36 @@
       var sec = '';
       if (estado.fase >= 1) {
         var listo = estado.firmas >= 2;
-        sec = '<h5 class="p-h">Retiros</h5><div class="p-tabla"><div class="p-fila"><div class="proy">' + fmt.format(CANT) + ' créditos<small>Compensación de flota 2026 · Para Empresa de ejemplo S.A.</small></div>' +
-          '<div><span class="p-pill ' + (hecho ? 'listo' : listo ? 'listo' : 'curso') + '">' + (hecho ? 'Retirado' : listo ? 'Listo para retirar' : 'Esperando firmas (' + estado.firmas + ' de 2)') + '</span></div>' +
-          '<div>' + (hecho ? '<span class="p-firmo">✓ Quemados</span>' : listo ? '<button type="button" class="p-btn primario chico pulsa" id="q-quemar">Retirar ahora</button>' : '<button type="button" class="p-btn ghost chico" id="q-firmar">Firmar</button>') + '</div></div></div>';
+        sec = '<h5 class="p-h">' + T('Retiros', 'Retirements') + '</h5><div class="p-tabla"><div class="p-fila"><div class="proy">' + fmt.format(CANT) + ' ' + T('créditos', 'credits') + '<small>' + T('Compensación de flota 2026 · Para Empresa de ejemplo S.A.', 'Fleet offset 2026 · For Sample Company Inc.') + '</small></div>' +
+          '<div><span class="p-pill ' + (hecho ? 'listo' : listo ? 'listo' : 'curso') + '">' + (hecho ? T('Retirado', 'Retired') : listo ? T('Listo para retirar', 'Ready to retire') : T('Esperando firmas (' + estado.firmas + ' de 2)', 'Awaiting signatures (' + estado.firmas + ' of 2)')) + '</span></div>' +
+          '<div>' + (hecho ? '<span class="p-firmo">' + T('✓ Quemados', '✓ Burned') + '</span>' : listo ? '<button type="button" class="p-btn primario chico pulsa" id="q-quemar">' + T('Retirar ahora', 'Retire now') + '</button>' : '<button type="button" class="p-btn ghost chico" id="q-firmar">' + T('Firmar', 'Sign') + '</button>') + '</div></div></div>';
       }
       c.innerHTML = pantalla('provincia', 'cred',
-        '<div class="p-stats"><div><span class="gran" id="q-gran">' + fmt.format(disp) + '</span><span class="gran-txt">créditos disponibles</span></div>' +
-        '<dl><div><dt>Emitidos</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>Retirados</dt><dd id="q-ret">' + (hecho ? fmt.format(CANT) : '0') + '</dd></div></dl></div>' +
-        '<p class="p-eq">Retirar un crédito lo quema: deja de existir y nadie lo puede volver a contar.</p>' +
-        '<div class="p-tabla"><div class="p-fila cab"><span>Proyecto</span><span>Token</span><span class="p-num">Disponibles</span></div><div class="p-fila"><div class="proy">' + esc(P.nombre) + '</div>' +
-        '<div><span class="mono">' + P.n.simbolo + '</span><span class="p-chain">✓ Nombre en la blockchain · emisión cerrada</span></div>' +
-        '<div class="p-num"><strong>' + fmt.format(disp) + '</strong><small>de ' + fmt.format(P.cred) + ' emitidos' + (hecho ? ', ' + CANT + ' retirados' : enCurso ? ', ' + CANT + ' en retiro' : '') + '</small>' +
-        (estado.fase === 0 ? '<button type="button" class="p-btn ghost chico" id="q-abrir" style="margin-top:8px">Retirar</button>' : '') + '</div></div></div>' + sec);
+        '<div class="p-stats"><div><span class="gran" id="q-gran">' + fmt.format(disp) + '</span><span class="gran-txt">' + T('créditos disponibles', 'credits available') + '</span></div>' +
+        '<dl><div><dt>' + T('Emitidos', 'Issued') + '</dt><dd>' + fmt.format(P.cred) + '</dd></div><div><dt>' + T('Retirados', 'Retired') + '</dt><dd id="q-ret">' + (hecho ? fmt.format(CANT) : '0') + '</dd></div></dl></div>' +
+        '<p class="p-eq">' + T('Retirar un crédito lo quema: deja de existir y nadie lo puede volver a contar.', 'Retiring a credit burns it: it ceases to exist and nobody can count it again.') + '</p>' +
+        '<div class="p-tabla"><div class="p-fila cab"><span>' + T('Proyecto', 'Project') + '</span><span>Token</span><span class="p-num">' + T('Disponibles', 'Available') + '</span></div><div class="p-fila"><div class="proy">' + esc(P.nombre) + '</div>' +
+        '<div><span class="mono">' + P.n.simbolo + '</span><span class="p-chain">' + T('✓ Nombre en la blockchain · emisión cerrada', '✓ Name on the blockchain · issuance closed') + '</span></div>' +
+        '<div class="p-num"><strong>' + fmt.format(disp) + '</strong><small>' + T('de ' + fmt.format(P.cred) + ' emitidos' + (hecho ? ', ' + CANT + ' retirados' : enCurso ? ', ' + CANT + ' en retiro' : ''), 'of ' + fmt.format(P.cred) + ' issued' + (hecho ? ', ' + CANT + ' retired' : enCurso ? ', ' + CANT + ' being retired' : '')) + '</small>' +
+        (estado.fase === 0 ? '<button type="button" class="p-btn ghost chico" id="q-abrir" style="margin-top:8px">' + T('Retirar', 'Retire') + '</button>' : '') + '</div></div></div>' + sec);
       var abrir = $('#q-abrir', c), firmar = $('#q-firmar', c), quemar = $('#q-quemar', c);
       if (abrir) abrir.addEventListener('click', modal);
-      if (firmar) firmar.addEventListener('click', function () { estado.firmas++; dibujar(); aviso(estado.firmas >= 2 ? 'Firmado. Juntó las firmas del equipo.' : 'Firmado. Falta otra firma.'); });
+      if (firmar) firmar.addEventListener('click', function () { estado.firmas++; dibujar(); aviso(estado.firmas >= 2 ? T('Firmado. Juntó las firmas del equipo.', 'Signed. It has the team\'s signatures.') : T('Firmado. Falta otra firma.', 'Signed. One more signature is needed.')); });
       if (quemar) quemar.addEventListener('click', function () {
-        estado.fase = 2; dibujar(); numero($('#q-gran', c), P.cred, P.cred - CANT); aviso(fmt.format(CANT) + ' créditos quemados. Quedó registrado en la blockchain.'); listoParaSeguir();
+        estado.fase = 2; dibujar(); numero($('#q-gran', c), P.cred, P.cred - CANT); aviso(T(fmt.format(CANT) + ' créditos quemados. Quedó registrado en la blockchain.', fmt.format(CANT) + ' credits burned. It is recorded on the blockchain.')); listoParaSeguir();
       });
     }
     function modal() {
       var m = document.createElement('div'); m.className = 'p-modal';
-      m.innerHTML = '<div class="p-dialogo" role="dialog" aria-label="Retirar créditos"><h4>Retirar créditos</h4>' +
-        '<div class="p-form" style="grid-template-columns:1fr"><div><label>Cantidad a retirar</label><div class="p-in">' + CANT + '</div></div>' +
-        '<div><label>Motivo del retiro</label><div class="p-in">Compensación de flota 2026</div></div>' +
-        '<div><label>Para quién se retiran</label><div class="p-in">Empresa de ejemplo S.A.</div></div></div>' +
-        '<p class="aviso">Retirar quema los créditos en la blockchain y no se puede deshacer. El pedido necesita la firma del equipo.</p>' +
-        '<div class="acc"><button type="button" class="p-btn ghost" id="q-cancelar">Cancelar</button><button type="button" class="p-btn primario" id="q-pedir">Pedir retiro</button></div></div>';
+      m.innerHTML = '<div class="p-dialogo" role="dialog" aria-label="' + T('Retirar créditos', 'Retire credits') + '"><h4>' + T('Retirar créditos', 'Retire credits') + '</h4>' +
+        '<div class="p-form" style="grid-template-columns:1fr"><div><label>' + T('Cantidad a retirar', 'Amount to retire') + '</label><div class="p-in">' + CANT + '</div></div>' +
+        '<div><label>' + T('Motivo del retiro', 'Reason for retirement') + '</label><div class="p-in">' + T('Compensación de flota 2026', 'Fleet offset 2026') + '</div></div>' +
+        '<div><label>' + T('Para quién se retiran', 'Who they are retired for') + '</label><div class="p-in">' + T('Empresa de ejemplo S.A.', 'Sample Company Inc.') + '</div></div></div>' +
+        '<p class="aviso">' + T('Retirar quema los créditos en la blockchain y no se puede deshacer. El pedido necesita la firma del equipo.', 'Retiring burns the credits on the blockchain and cannot be undone. The request needs the team\'s signature.') + '</p>' +
+        '<div class="acc"><button type="button" class="p-btn ghost" id="q-cancelar">' + T('Cancelar', 'Cancel') + '</button><button type="button" class="p-btn primario" id="q-pedir">' + T('Pedir retiro', 'Request retirement') + '</button></div></div>';
       c.appendChild(m);
       $('#q-cancelar', m).addEventListener('click', function () { m.remove(); });
-      $('#q-pedir', m).addEventListener('click', function () { estado.fase = 1; estado.firmas = 1; m.remove(); dibujar(); aviso('Retiro pedido. Falta la firma de otro integrante.'); });
+      $('#q-pedir', m).addEventListener('click', function () { estado.fase = 1; estado.firmas = 1; m.remove(); dibujar(); aviso(T('Retiro pedido. Falta la firma de otro integrante.', 'Retirement requested. Another team member still has to sign.')); });
       $('#q-pedir', m).focus();
     }
     dibujar();
@@ -1025,59 +1073,75 @@
   }
   function montarRegistro(c) {
     var ev = [
-      ['Carga del proyecto', 'Propuesta creada en el multisig de Neuquén'],
-      ['Firma de Auditor/a 1', 'Aprobación provincial'],
-      ['Firma de Auditor/a 2', 'Se alcanza el umbral: 2 de 3'],
-      ['Envío a Nación', 'La propuesta provincial se ejecuta'],
-      ['Aprobación nacional', 'Dos firmas de Nación'],
-      ['Emisión de ' + fmt.format(P.cred) + ' créditos', 'Token ' + P.n.simbolo + ' a la bóveda de Neuquén'],
-      ['Nombre escrito y emisión cerrada', 'Ya no se pueden crear más créditos'],
-      ['Retiro de 500 créditos', 'Quemados con la firma del equipo']
+      [T('Carga del proyecto', 'Project submitted'), T('Propuesta creada en el multisig de Neuquén', 'Proposal created in Neuquén\'s multisig')],
+      [T('Firma de Auditor/a 1', 'Signature of Auditor 1'), T('Aprobación provincial', 'Provincial approval')],
+      [T('Firma de Auditor/a 2', 'Signature of Auditor 2'), T('Se alcanza el umbral: 2 de 3', 'Threshold reached: 2 of 3')],
+      [T('Envío a Nación', 'Sent to the national level'), T('La propuesta provincial se ejecuta', 'The provincial proposal is executed')],
+      [T('Aprobación nacional', 'National approval'), T('Dos firmas de Nación', 'Two national signatures')],
+      [T('Emisión de ' + fmt.format(P.cred) + ' créditos', 'Issuance of ' + fmt.format(P.cred) + ' credits'), T('Token ' + P.n.simbolo + ' a la bóveda de Neuquén', 'Token ' + P.n.simbolo + ' to Neuquén\'s vault')],
+      [T('Nombre escrito y emisión cerrada', 'Name written and issuance closed'), T('Ya no se pueden crear más créditos', 'No more credits can be created')],
+      [T('Retiro de 500 créditos', 'Retirement of 500 credits'), T('Quemados con la firma del equipo', 'Burned with the team\'s signature')]
     ];
     c.innerHTML = pantalla('provincia', 'reg',
-      '<p class="p-intro">Cada proyecto tiene su historial: quién hizo qué, cuándo, y la transacción que lo prueba.</p>' +
+      '<p class="p-intro">' + T('Cada proyecto tiene su historial: quién hizo qué, cuándo, y la transacción que lo prueba.', 'Each project has its own history: who did what, when, and the transaction that proves it.') + '</p>' +
       '<ol class="p-linea">' + ev.map(function (e, i) { return '<li' + (i === ev.length - 1 ? ' class="quema"' : '') + '><div>' + e[0] + '<small>' + e[1] + '</small></div><em>' + firmaEjemplo(i + 3) + '</em></li>'; }).join('') + '</ol>' +
       '<div class="p-json"><span class="k">"integridad"</span>: { <span class="k">"hashRegistrado"</span>: <span class="v">"9f2c…a41e"</span>, <span class="k">"hashRecalculado"</span>: <span class="v">"9f2c…a41e"</span>, <span class="k">"coincide"</span>: <span class="v">true</span> }</div>' +
-      '<div class="p-acciones"><button type="button" class="p-btn ghost chico" id="r-bajar">Descargar historial blockchain</button><span class="p-nota amb">Firmas de ejemplo</span></div>');
-    $('#r-bajar', c).addEventListener('click', function () { aviso('En la plataforma real se descarga el archivo completo, con los enlaces al explorador.'); });
+      '<div class="p-acciones"><button type="button" class="p-btn ghost chico" id="r-bajar">' + T('Descargar historial blockchain', 'Download blockchain history') + '</button><span class="p-nota amb">' + T('Firmas de ejemplo', 'Sample signatures') + '</span></div>');
+    $('#r-bajar', c).addEventListener('click', function () { aviso(T('En la plataforma real se descarga el archivo completo, con los enlaces al explorador.', 'On the real platform the full file is downloaded, with links to the explorer.')); });
   }
 
   /* ---------- definición de los pasos ---------- */
-  var PASOS = [
-    { t: 'La provincia carga el proyecto', montar: montarCarga,
-      txt: 'Un agente provincial completa los datos del proyecto. Mientras escribe, el sistema arma el <b>nombre del token</b>: provincia, cantidad y una sigla.',
-      bajo: 'Se abre una propuesta en el multisig de la provincia. En la blockchain queda un memo con la huella (hash) de los datos, no los datos.' },
-    { t: 'El equipo de la provincia firma', montar: montarProvincia,
-      txt: 'Cargar no alcanza. El proyecto espera las firmas de funcionarios y auditores. Con <b>2 de 3</b> firmas se puede enviar a Nación. <b>Probá firmar.</b>',
-      bajo: 'Squads V3 no deja ejecutar la propuesta hasta que junta el umbral de aprobaciones. Cada firma es una transacción.' },
-    { t: 'Nación revisa y firma por separado', montar: montarNacion,
-      txt: 'El proyecto llega a Nación sin que nadie lo cargue de nuevo. Lo tiene que aprobar <b>otro equipo, con otros firmantes</b>. Ninguna parte decide sola.',
-      bajo: 'Al ejecutarse la etapa provincial, el sistema crea la propuesta en el multisig nacional automáticamente.' },
-    { t: 'Los créditos se emiten solos', montar: montarEmision,
-      txt: 'Cuando Nación aprueba, <b>no hay un paso manual</b> que alguien pueda adelantar o saltear. Se crea el token, se acreditan los créditos y se cierra la emisión.',
-      bajo: 'Token SPL de 0 decimales (1 token = 1 tCO₂e) con nombre y símbolo en Metaplex Token Metadata. Se revoca la autoridad de emisión, así que la cantidad no puede crecer.' },
-    { t: 'Retirar es quemar', montar: montarRetiro,
-      txt: 'Para usar un crédito se lo <b>retira</b>: se destruye en la blockchain y nadie lo vuelve a contar. También necesita las firmas del equipo. <b>Probá retirar 500.</b>',
-      bajo: 'Es una propuesta del multisig con una instrucción Burn del programa SPL Token, firmada por la bóveda que guarda los créditos.' },
-    { t: 'Todo queda registrado', montar: montarRegistro,
-      txt: 'Cada paso deja una <b>firma que cualquiera puede revisar</b> en un explorador de blockchain. El historial se puede descargar y comprueba que los datos no cambiaron.',
-      bajo: 'El historial junta el registro local con lo que se lee de Solana, y recalcula la huella de los datos para compararla con la registrada.' }
-  ];
+  var PASOS = [];
+  function armarPasos() {
+    PASOS = [
+      { t: T('La provincia carga el proyecto', 'The province submits the project'), montar: montarCarga,
+        txt: T('Un agente provincial completa los datos del proyecto. Mientras escribe, el sistema arma el <b>nombre del token</b>: provincia, cantidad y una sigla.',
+               'A provincial agent fills in the project data. While they type, the system builds the <b>token name</b>: province, amount and a project code.'),
+        bajo: T('Se abre una propuesta en el multisig de la provincia. En la blockchain queda un memo con la huella (hash) de los datos, no los datos.',
+                'A proposal is opened in the province\'s multisig. The blockchain keeps a memo with the fingerprint (hash) of the data, not the data itself.') },
+      { t: T('El equipo de la provincia firma', 'The province team signs'), montar: montarProvincia,
+        txt: T('Cargar no alcanza. El proyecto espera las firmas de funcionarios y auditores. Con <b>2 de 3</b> firmas se puede enviar a Nación. <b>Probá firmar.</b>',
+               'Submitting is not enough. The project waits for signatures from officials and auditors. With <b>2 of 3</b> signatures it can go to the national level. <b>Try signing.</b>'),
+        bajo: T('Squads V3 no deja ejecutar la propuesta hasta que junta el umbral de aprobaciones. Cada firma es una transacción.',
+                'Squads V3 will not let the proposal execute until it reaches the approval threshold. Each signature is a transaction.') },
+      { t: T('Nación revisa y firma por separado', 'The national level reviews and signs separately'), montar: montarNacion,
+        txt: T('El proyecto llega a Nación sin que nadie lo cargue de nuevo. Lo tiene que aprobar <b>otro equipo, con otros firmantes</b>. Ninguna parte decide sola.',
+               'The project reaches the national level without anyone entering it again. It has to be approved by <b>a different team, with different signers</b>. No single party decides alone.'),
+        bajo: T('Al ejecutarse la etapa provincial, el sistema crea la propuesta en el multisig nacional automáticamente.',
+                'When the provincial stage is executed, the system creates the proposal in the national multisig automatically.') },
+      { t: T('Los créditos se emiten solos', 'The credits are issued automatically'), montar: montarEmision,
+        txt: T('Cuando Nación aprueba, <b>no hay un paso manual</b> que alguien pueda adelantar o saltear. Se crea el token, se acreditan los créditos y se cierra la emisión.',
+               'When the national level approves, there is <b>no manual step</b> that anyone could bring forward or skip. The token is created, the credits are deposited and issuance is closed.'),
+        bajo: T('Token SPL de 0 decimales (1 token = 1 tCO₂e) con nombre y símbolo en Metaplex Token Metadata. Se revoca la autoridad de emisión, así que la cantidad no puede crecer.',
+                'SPL token with 0 decimals (1 token = 1 tCO₂e) with its name and symbol in Metaplex Token Metadata. The mint authority is revoked, so the amount cannot grow.') },
+      { t: T('Retirar es quemar', 'Retiring means burning'), montar: montarRetiro,
+        txt: T('Para usar un crédito se lo <b>retira</b>: se destruye en la blockchain y nadie lo vuelve a contar. También necesita las firmas del equipo. <b>Probá retirar 500.</b>',
+               'To use a credit it is <b>retired</b>: it is destroyed on the blockchain and nobody can count it again. It also needs the team\'s signatures. <b>Try retiring 500.</b>'),
+        bajo: T('Es una propuesta del multisig con una instrucción Burn del programa SPL Token, firmada por la bóveda que guarda los créditos.',
+                'It is a multisig proposal with a Burn instruction from the SPL Token program, signed by the vault that holds the credits.') },
+      { t: T('Todo queda registrado', 'Everything is recorded'), montar: montarRegistro,
+        txt: T('Cada paso deja una <b>firma que cualquiera puede revisar</b> en un explorador de blockchain. El historial se puede descargar y comprueba que los datos no cambiaron.',
+               'Every step leaves a <b>signature that anyone can check</b> in a blockchain explorer. The history can be downloaded and proves that the data did not change.'),
+        bajo: T('El historial junta el registro local con lo que se lee de Solana, y recalcula la huella de los datos para compararla con la registrada.',
+                'The history combines the local record with what is read from Solana, and recalculates the data fingerprint to compare it with the registered one.') }
+    ];
+  }
 
   var actual = 0;
   var barra = $('#t-prog');
+  armarPasos();
   PASOS.forEach(function (p, i) {
-    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Ir al paso ' + (i + 1) + ': ' + p.t);
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', T('Ir al paso ', 'Go to step ') + (i + 1) + ': ' + p.t);
     b.addEventListener('click', function () { ir(i); }); barra.appendChild(b);
   });
   function ir(i) {
     actual = Math.max(0, Math.min(PASOS.length - 1, i)); token++;
     var p = PASOS[actual];
-    $('#t-num').textContent = 'PASO ' + (actual + 1) + ' DE ' + PASOS.length;
+    $('#t-num').textContent = T('PASO ' + (actual + 1) + ' DE ' + PASOS.length, 'STEP ' + (actual + 1) + ' OF ' + PASOS.length);
     $('#t-titulo').textContent = p.t; $('#t-texto').innerHTML = p.txt; $('#t-bajo').textContent = p.bajo;
     barra.querySelectorAll('button').forEach(function (b, k) { b.className = k < actual ? 'hecho' : k === actual ? 'actual' : ''; b.setAttribute('aria-current', k === actual ? 'step' : 'false'); });
     var ant = $('#t-ant'), sig = $('#t-sig'); ant.disabled = actual === 0; sig.classList.remove('pulsa');
-    sig.textContent = actual === PASOS.length - 1 ? 'Volver al inicio ↺' : 'Siguiente →';
+    sig.textContent = actual === PASOS.length - 1 ? T('Volver al inicio ↺', 'Back to start ↺') : T('Siguiente →', 'Next →');
     p.montar($('#t-pantalla'));
   }
   $('#t-ant').addEventListener('click', function () { ir(actual - 1); });
@@ -1090,13 +1154,19 @@
     if (e.key === 'ArrowRight') ir(actual + 1); else if (e.key === 'ArrowLeft') ir(actual - 1);
   });
   ir(0);
+  // al cambiar de idioma se rearman los pasos y se vuelve a dibujar el actual
+  I.onChange(function () {
+    armarPasos();
+    barra.querySelectorAll('button').forEach(function (b, i) { b.setAttribute('aria-label', T('Ir al paso ', 'Go to step ') + (i + 1) + ': ' + PASOS[i].t); });
+    ir(actual);
+  });
 })();
 
 /* ===== Constructor de token ===== */
 (function () {
   var N = window.RenareNombres;
   var PROVINCIAS = ['Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Ciudad Autónoma de Buenos Aires', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'];
-  var fmt = new Intl.NumberFormat('es-AR');
+  var fmt = { format: function (n) { return I.nf().format(n); } };
   function $(s) { return document.querySelector(s); }
   var sel = $('#c-prov'), nom = $('#c-nombre'), cant = $('#c-cant'), rango = $('#c-rango'), sigla = $('#c-sigla'), editada = false;
   PROVINCIAS.forEach(function (p) { var o = document.createElement('option'); o.textContent = p; if (p === 'Neuquén') o.selected = true; sel.appendChild(o); });
@@ -1110,13 +1180,13 @@
     var n = Math.floor(Number(cant.value)), valida = isFinite(n) && n >= 1;
     var s = N.limpiarSigla(sigla.value), box = $('#c-simbolo');
     if (!valida || !N.siglaValida(s)) {
-      box.innerHTML = '<div style="color:var(--bone-dim);font-size:14.5px;line-height:1.5">' + (!valida ? 'Poné una cantidad de 1 en adelante.' : 'La sigla tiene que tener 3 o 4 letras.') + '</div>';
-      $('#c-largo').textContent = '—'; $('#c-regla-cant').textContent = 'La cantidad se escribe con 3 caracteres y siempre se redondea hacia abajo.'; return;
+      box.innerHTML = '<div style="color:var(--bone-dim);font-size:14.5px;line-height:1.5">' + (!valida ? T('Poné una cantidad de 1 en adelante.', 'Enter an amount of 1 or more.') : T('La sigla tiene que tener 3 o 4 letras.', 'The code must have 3 or 4 letters.')) + '</div>';
+      $('#c-largo').textContent = '—'; $('#c-regla-cant').textContent = T('La cantidad se escribe con 3 caracteres y siempre se redondea hacia abajo.', 'The amount is written with 3 characters and is always rounded down.'); return;
     }
     var r = N.armarNombres({ provincia: sel.value, cantidad: n, sigla: s, nombreProyecto: nom.value.trim() });
-    box.innerHTML = '<div class="trozo prov"><b>' + r.codigoProvincia + '</b><span>PROVINCIA</span></div><div class="trozo cant"><b>' + r.codigoCantidad + '</b><span>CANTIDAD</span></div><div class="trozo sig"><b>' + r.sigla + '</b><span>PROYECTO</span></div>';
+    box.innerHTML = '<div class="trozo prov"><b>' + r.codigoProvincia + '</b><span>' + T('PROVINCIA', 'PROVINCE') + '</span></div><div class="trozo cant"><b>' + r.codigoCantidad + '</b><span>' + T('CANTIDAD', 'AMOUNT') + '</span></div><div class="trozo sig"><b>' + r.sigla + '</b><span>' + T('PROYECTO', 'PROJECT') + '</span></div>';
     $('#c-largo').textContent = r.nombre;
-    var txt = r.codigoCantidad === '99M' ? 'Desde 100 millones el nombre marca 99M. La cantidad exacta queda en el token.' : 'La cantidad usa la letra donde iría la coma, como en las resistencias: ' + fmt.format(n) + ' se escribe ' + r.codigoCantidad + ' y siempre se redondea hacia abajo.';
+    var txt = r.codigoCantidad === '99M' ? T('Desde 100 millones el nombre marca 99M. La cantidad exacta queda en el token.', 'From 100 million up the name shows 99M. The exact amount stays in the token.') : T('La cantidad usa la letra donde iría la coma, como en las resistencias: ' + fmt.format(n) + ' se escribe ' + r.codigoCantidad + ' y siempre se redondea hacia abajo.', 'The amount uses the letter where the decimal point would go, as with resistors: ' + fmt.format(n) + ' is written ' + r.codigoCantidad + ' and is always rounded down.');
     $('#c-regla-cant').textContent = txt;
   }
   nom.addEventListener('input', function () { if (!editada) sigla.value = N.sugerirSigla(nom.value); pintar(); });
@@ -1126,13 +1196,14 @@
   sel.addEventListener('change', pintar);
   $('#c-sugerir').addEventListener('click', function () { editada = false; sigla.value = N.sugerirSigla(nom.value); pintar(); });
   pintar();
+  I.onChange(pintar);
 })();
 
 /* ===== Verificador de un crédito real (lee directo de Solana Devnet) ===== */
 (function () {
   var EJEMPLO_MINT = ''; // pegá acá la dirección de un crédito emitido para mostrar el botón de ejemplo
   var METADATA_PROGRAM = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
-  var fmt = new Intl.NumberFormat('es-AR');
+  var fmt = { format: function (n) { return I.nf().format(n); } };
   function $(s) { return document.querySelector(s); }
   function esc(t) { var d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; }
   function leerTexto(bytes, off, max) {
@@ -1152,33 +1223,36 @@
   }
   window.RenareVerif = { decodificarMint: decodificarMint, decodificarMetadata: decodificarMetadata };
 
-  var salida = $('#v-salida');
-  function mostrar(html) { salida.innerHTML = html; salida.classList.add('ver'); }
+  var salida = $('#v-salida'), ultima = null;
+  // guarda cómo dibujar el resultado, así se puede volver a dibujar si cambia el idioma
+  function mostrar(fn) { ultima = fn; salida.innerHTML = fn(); salida.classList.add('ver'); }
+  function simple(clase, es, en) { mostrar(function () { return '<div class="error"' + (clase ? ' style="color:var(--bone-dim)"' : '') + '>' + T(es, en) + '</div>'; }); }
   async function consultar(texto) {
     var dir = String(texto || '').trim();
     var sw = window.solanaWeb3;
-    if (!sw) { mostrar('<div class="error">No se pudo cargar la librería de Solana. Recargá la página.</div>'); return; }
+    if (!sw) { simple(false, 'No se pudo cargar la librería de Solana. Recargá la página.', 'The Solana library could not be loaded. Reload the page.'); return; }
     var mint;
-    try { mint = new sw.PublicKey(dir); } catch (e) { mostrar('<div class="error">Esa dirección no es válida. Copiala completa desde un explorador.</div>'); return; }
-    mostrar('<div class="error" style="color:var(--bone-dim)">Consultando la blockchain…</div>');
+    try { mint = new sw.PublicKey(dir); } catch (e) { simple(false, 'Esa dirección no es válida. Copiala completa desde un explorador.', 'That address is not valid. Copy it in full from an explorer.'); return; }
+    simple(true, 'Consultando la blockchain…', 'Querying the blockchain…');
     try {
       var conn = new sw.Connection('https://api.devnet.solana.com', 'confirmed');
       var cuenta = await conn.getAccountInfo(mint);
-      if (!cuenta) { mostrar('<div class="error">No encontramos ese token en Devnet.</div>'); return; }
-      if (cuenta.data.length < 82) { mostrar('<div class="error">Esa dirección existe, pero no es un token.</div>'); return; }
+      if (!cuenta) { simple(false, 'No encontramos ese token en Devnet.', 'We could not find that token on Devnet.'); return; }
+      if (cuenta.data.length < 82) { simple(false, 'Esa dirección existe, pero no es un token.', 'That address exists, but it is not a token.'); return; }
       var m = decodificarMint(new Uint8Array(cuenta.data));
       var pda = sw.PublicKey.findProgramAddressSync([new TextEncoder().encode('metadata'), new sw.PublicKey(METADATA_PROGRAM).toBytes(), mint.toBytes()], new sw.PublicKey(METADATA_PROGRAM))[0];
       var cm = await conn.getAccountInfo(pda), meta = null;
       if (cm && cm.data.length > 100) meta = decodificarMetadata(new Uint8Array(cm.data));
       var cantidad = Number(m.supply) / Math.pow(10, m.decimales);
-      mostrar(
-        (meta ? '<h4>' + esc(meta.nombre) + '</h4><div class="sim">' + esc(meta.simbolo) + '</div>' : '<h4>Token sin nombre</h4><div class="error" style="color:var(--bone-dim)">Existe, pero no tiene un nombre escrito en la blockchain.</div>') +
-        '<dl><div><dt>CRÉDITOS QUE EXISTEN</dt><dd>' + fmt.format(cantidad) + '</dd></div>' +
-        '<div><dt>EMISIÓN</dt><dd>' + (m.emisionCerrada ? 'Cerrada: no se pueden crear más' : 'Abierta: se pueden crear más') + '</dd></div></dl>' +
-        '<div class="pie"><a href="https://solscan.io/token/' + esc(mint.toBase58()) + '?cluster=devnet" target="_blank" rel="noopener">Ver en Solscan ↗</a></div>');
+      mostrar(function () {
+        return (meta ? '<h4>' + esc(meta.nombre) + '</h4><div class="sim">' + esc(meta.simbolo) + '</div>' : '<h4>' + T('Token sin nombre', 'Unnamed token') + '</h4><div class="error" style="color:var(--bone-dim)">' + T('Existe, pero no tiene un nombre escrito en la blockchain.', 'It exists, but it has no name written on the blockchain.') + '</div>') +
+          '<dl><div><dt>' + T('CRÉDITOS QUE EXISTEN', 'CREDITS THAT EXIST') + '</dt><dd>' + fmt.format(cantidad) + '</dd></div>' +
+          '<div><dt>' + T('EMISIÓN', 'ISSUANCE') + '</dt><dd>' + (m.emisionCerrada ? T('Cerrada: no se pueden crear más', 'Closed: no more can be created') : T('Abierta: se pueden crear más', 'Open: more can be created')) + '</dd></div></dl>' +
+          '<div class="pie"><a href="https://solscan.io/token/' + esc(mint.toBase58()) + '?cluster=devnet" target="_blank" rel="noopener">' + T('Ver en Solscan ↗', 'View on Solscan ↗') + '</a></div>';
+      });
     } catch (err) {
       console.error(err);
-      mostrar('<div class="error">No se pudo consultar Devnet en este momento. Probá de nuevo en unos segundos.</div>');
+      simple(false, 'No se pudo consultar Devnet en este momento. Probá de nuevo en unos segundos.', 'Devnet could not be queried right now. Try again in a few seconds.');
     }
   }
   $('#v-form').addEventListener('submit', function (e) { e.preventDefault(); consultar($('#v-mint').value); });
@@ -1186,9 +1260,91 @@
     var b = $('#v-ejemplo'); b.hidden = false;
     b.addEventListener('click', function () { $('#v-mint').value = EJEMPLO_MINT; consultar(EJEMPLO_MINT); });
   }
+  I.onChange(function () { if (ultima) salida.innerHTML = ultima(); });
 })();
 </script>
 
+<script>
+/* ===== Textos fijos de la página en inglés (el español queda tal cual está en el HTML) ===== */
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  // [selector, inglés, atributo opcional]. Sin atributo se reemplaza el contenido.
+  var EN = [
+    ['.nav-back', '← Back to site'],
+    ['.hero .eyebrow', '// TECHNICAL PROTOTYPE — BILL S-808/26 (SEN. ROYÓN)'],
+    ['.hero h1', 'A carbon registry where <span class="flare">no single signature is enough</span>'],
+    ['.hero p.sub', 'ReNaRe is a prototype running for real on the Solana blockchain. A project needs the signatures of several auditors in the province and of others at the national level before any credits exist. Here you can walk through it step by step, with sample data, and then check the real thing live.'],
+    ['.badge-row .pill:nth-child(2)', 'Real multisig (Squads Protocol)'],
+    ['.badge-row .pill:nth-child(3)', 'No monetary value — test environment'],
+    ['.anclas a:nth-child(1)', 'Walkthrough'], ['.anclas a:nth-child(2)', 'Build a token'], ['.anclas a:nth-child(3)', 'What is public'],
+    ['.anclas a:nth-child(4)', 'Check a credit'], ['.anclas a:nth-child(5)', 'Live'],
+    ['#recorrido .eyebrow', '// WALKTHROUGH'], ['#recorrido h2', 'From submission to retirement, in six steps'],
+    ['#recorrido .section-head p', 'This is the platform from the inside. The screens are a simulation with made-up data: try signing, sending and retiring.'],
+    ['.tour-bajo span', 'UNDER THE HOOD'], ['#t-ant', '← Previous'],
+    ['#t-prog', null, 'aria-label', 'Walkthrough steps'],
+    ['#t-pantalla', null, 'aria-label', 'Simulation of the platform with sample data'],
+    ['#token .eyebrow', '// THE CREDIT\'S NAME'], ['#token h2', 'Build a token\'s name'],
+    ['#token .section-head p', 'Each project issues its own token, and its name tells you at a glance where it comes from and how much it is. Change the data and watch it take shape.'],
+    ['label[for=c-prov]', 'PROVINCE'], ['label[for=c-nombre]', 'PROJECT NAME'], ['label[for=c-cant]', 'CREDITS (1 = 1 TONNE OF CO₂)'], ['label[for=c-sigla]', 'PROJECT CODE (3 OR 4 LETTERS)'],
+    ['#c-rango', null, 'aria-label', 'Amount of credits, logarithmic scale'],
+    ['#c-pista-t', 'The province chooses it when it submits the project.'], ['#c-sugerir', 'Use the suggested one'],
+    ['.resultado .sello', 'SYMBOL ON THE BLOCKCHAIN'], ['#c-largo-t', 'Full name:'],
+    ['.reglas div:nth-child(1)', 'They are always 10 characters at most, Solana\'s limit.'],
+    ['.reglas div:nth-child(3)', 'A code cannot be repeated within the same province.'],
+    ['#publico .eyebrow', '// TRANSPARENCY, WITH LIMITS'], ['#publico h2', 'What can be verified and what stays inside'],
+    ['#publico .section-head p', 'The idea is that anyone can check what happened without having to trust anyone, while the data of people and of land parcels stays protected.'],
+    ['.caja.pub h4', 'Public <i>ON THE BLOCKCHAIN</i>'],
+    ['.caja.pub li:nth-child(1)', 'Who signed each step and when.'],
+    ['.caja.pub li:nth-child(2)', 'The state of each approval: pending, ready or executed.'],
+    ['.caja.pub li:nth-child(3)', 'The fingerprint (hash) of each project\'s data.'],
+    ['.caja.pub li:nth-child(4)', 'Each project\'s token: name, symbol, amount issued and whether issuance is closed.'],
+    ['.caja.pub li:nth-child(5)', 'Every retirement: how many credits were burned, with which signatures and in which transaction.'],
+    ['.caja.priv h4', 'Restricted <i>OFF-CHAIN</i>'],
+    ['.caja.priv li:nth-child(1)', 'The submission and signing panel: access only with an accredited user.'],
+    ['.caja.priv li:nth-child(2)', 'Land parcel data: owner and exact location.'],
+    ['.caja.priv li:nth-child(3)', 'Users, passwords and signing keys.'],
+    ['.caja.priv li:nth-child(4)', 'The platform\'s code and server.'],
+    ['.nota-final', 'Project data is not published: only its fingerprint goes on the blockchain. It serves to show later that nobody altered it.'],
+    ['#verificar .eyebrow', '// CHECK IT YOURSELF'], ['#verificar h2', 'Look up a credit on the blockchain'],
+    ['#verificar .section-head p', 'Paste the address of a Solana Devnet token. If it is a ReNaRe credit, you will see its name, how many credits exist and whether issuance has been closed.'],
+    ['#v-mint', null, 'placeholder', 'Token address (mint)'], ['#v-mint', null, 'aria-label', 'Token address'],
+    ['#v-btn', 'Look up'], ['#v-ejemplo', 'Try an example credit'],
+    ['#estado-en-vivo .eyebrow', '// LIVE STATUS'], ['#estado-en-vivo h2', 'Live dashboard — Solana Devnet'],
+    ['#estado-en-vivo .section-head p', 'This data is read directly from the blockchain right now, with no intermediaries. During a live demo, a real approval made at <a href="https://devnet.squads.so" target="_blank" rel="noopener">devnet.squads.so</a> by an auditor will show up here within seconds.'],
+    ['.live-head', '<span class="live-dot"></span> CONNECTED TO DEVNET'],
+    ['#refresh-btn', '↻ Refresh now'],
+    ['#infraestructura .eyebrow', '// VERIFY IT YOURSELF'], ['#infraestructura h2', 'Real, public, auditable infrastructure'],
+    ['#infraestructura .section-head p', 'None of this is a mockup. You can check each piece directly in a blockchain explorer or in the multisig interface.'],
+    ['.infra-card:nth-child(1) .label', 'PROGRAM (SMART CONTRACT)'], ['.infra-card:nth-child(1) a.go', 'View on Solscan ↗'],
+    ['.infra-card:nth-child(2) .label', 'MULTISIG — NEUQUÉN PROVINCE'], ['.infra-card:nth-child(2) a.go', 'View on Squads ↗'],
+    ['.infra-card:nth-child(3) .label', 'MULTISIG — NATIONAL LEVEL'], ['.infra-card:nth-child(3) a.go', 'View on Squads ↗'],
+    ['.infra-card:nth-child(4) .label', 'NETWORK'], ['.infra-card:nth-child(4) a.go', 'Official explorer ↗'],
+    ['footer .credit', 'Technology and prototype developed by the <a href="index.html">PumpTree</a> team — Vaca Muerta, Neuquén.'],
+    ['footer .disclaimer', 'This prototype runs on Solana Devnet, a public test network with no real monetary value, with the sole purpose of demonstrating the technical feasibility of a federated carbon-credit registry with double multisig approval. The walkthrough screens are a simulation with made-up data. It does not represent an official government system.']
+  ];
+  var TITULO = { es: document.title, en: 'RENARE — How the carbon registry works on Solana | PumpTree' };
+  var meta = $('meta[name="description"]');
+  var DESC = { es: meta ? meta.getAttribute('content') : '', en: 'Interactive walkthrough of ReNaRe: how a carbon project goes through provincial and national signatures, is issued as a token on Solana and retired. Sample data.' };
+
+  function aplicar() {
+    var en = I.lang === 'en';
+    EN.forEach(function (e) {
+      var el = $(e[0]); if (!el) return;
+      var attr = e[2], clave = attr ? 'es_' + attr.replace(/-/g, '_') : 'es_html';
+      if (el.dataset[clave] === undefined) el.dataset[clave] = attr ? (el.getAttribute(attr) || '') : el.innerHTML;
+      var valor = en ? (attr ? e[3] : e[1]) : el.dataset[clave];
+      if (attr) el.setAttribute(attr, valor); else el.innerHTML = valor;
+    });
+    document.documentElement.lang = I.lang;
+    document.title = TITULO[I.lang];
+    if (meta) meta.setAttribute('content', DESC[I.lang]);
+    document.querySelectorAll('.idioma button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.l === I.lang)); });
+  }
+  document.querySelectorAll('.idioma button').forEach(function (b) { b.addEventListener('click', function () { I.set(b.dataset.l); }); });
+  I.onChange(aplicar);
+  aplicar();
+})();
+</script>
 <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <script>
 (function(){
@@ -1259,9 +1415,9 @@
   }
 
   function statusLabelText(status) {
-    if (status === "AprobadoNacion") return "Aprobado por Nación";
-    if (status === "AprobadoProvincia") return "Aprobado por Provincia";
-    return "Presentado";
+    if (status === "AprobadoNacion") return T("Aprobado por Nación", "Approved by Nation");
+    if (status === "AprobadoProvincia") return T("Aprobado por Provincia", "Approved by Province");
+    return T("Presentado", "Submitted");
   }
 
   function trackHtml(status) {
@@ -1288,7 +1444,7 @@
     const statusEl = document.getElementById("dash-status");
     const container = document.getElementById("provinces-container");
     btn.disabled = true;
-    statusEl.textContent = "Consultando la blockchain…";
+    statusEl.textContent = T("Consultando la blockchain…", "Querying the blockchain…");
 
     try {
       const [provinceDisc, projectDisc] = await Promise.all([
@@ -1312,30 +1468,30 @@
       }
 
       if (provinces.length === 0) {
-        statusEl.textContent = "Todavía no hay provincias registradas on-chain.";
-        container.innerHTML = '<p class="empty-note">Cuando se registre la primera provincia (ver Paso 3 del programa), va a aparecer acá automáticamente.</p>';
+        statusEl.textContent = T("Todavía no hay provincias registradas on-chain.", "No provinces registered on-chain yet.");
+        container.innerHTML = '<p class="empty-note">' + T("Cuando se registre la primera provincia (ver Paso 3 del programa), va a aparecer acá automáticamente.", "When the first province is registered (see Step 3 of the program), it will show up here automatically.") + '</p>';
       } else {
-        statusEl.textContent = provinces.length + " provincia(s), " + projects.length + " proyecto(s) encontrados on-chain.";
+        statusEl.textContent = T(provinces.length + " provincia(s), " + projects.length + " proyecto(s) encontrados on-chain.", provinces.length + " province(s), " + projects.length + " project(s) found on-chain.");
         container.innerHTML = provinces.map((prov) => {
           const provProjects = projects.filter((p) => p.province.equals(prov.pubkey));
           const rows = provProjects.length
             ? provProjects.map((p) => (
                 '<div class="project-row">' +
                   '<div class="project-id">' + p.projectId + '</div>' +
-                  '<div class="project-meta">Metodología: ' + p.methodology + '</div>' +
+                  '<div class="project-meta">' + T('Metodología: ', 'Methodology: ') + p.methodology + '</div>' +
                   '<div class="status-track">' + trackHtml(p.status) + '</div>' +
                   '<div class="status-label ' + statusBadgeClass(p.status) + '">' + statusLabelText(p.status) + '</div>' +
                 '</div>'
               )).join("")
-            : '<div class="project-row"><div class="project-meta">Todavía no hay proyectos cargados en esta provincia.</div></div>';
+            : '<div class="project-row"><div class="project-meta">' + T('Todavía no hay proyectos cargados en esta provincia.', 'No projects loaded for this province yet.') + '</div></div>';
 
           return (
             '<div class="province-card">' +
               '<div class="province-card-head">' +
                 '<h3>' + prov.name + '</h3>' +
-                '<span class="code">' + prov.code + ' · ' + prov.projectCount.toString() + ' proyecto(s) registrados</span>' +
+                '<span class="code">' + prov.code + ' · ' + prov.projectCount.toString() + T(' proyecto(s) registrados', ' project(s) registered') + '</span>' +
               '</div>' +
-              '<div class="province-authority">Autoridad provincial (Vault del multisig): ' +
+              '<div class="province-authority">' + T('Autoridad provincial (Vault del multisig): ', 'Provincial authority (multisig Vault): ') +
                 '<a href="https://solscan.io/account/' + prov.authority.toBase58() + '?cluster=devnet" target="_blank" rel="noopener">' + shortAddr(prov.authority) + ' ↗</a>' +
               '</div>' +
               rows +
@@ -1345,16 +1501,17 @@
       }
 
       document.getElementById("updated-label").textContent =
-        "Última actualización: " + new Date().toLocaleTimeString("es-AR");
+        T("Última actualización: ", "Last updated: ") + new Date().toLocaleTimeString(I.lang === "en" ? "en-US" : "es-AR");
     } catch (err) {
       console.error(err);
-      statusEl.textContent = "No se pudo conectar a Devnet en este momento. Probá de nuevo en unos segundos.";
+      statusEl.textContent = T("No se pudo conectar a Devnet en este momento. Probá de nuevo en unos segundos.", "Could not connect to Devnet right now. Try again in a few seconds.");
     } finally {
       btn.disabled = false;
     }
   }
 
   window.cargarEstado = cargarEstado;
+  I.onChange(function () { cargarEstado(); });
   cargarEstado();
   setInterval(cargarEstado, 8000);
 })();
