@@ -304,9 +304,67 @@
   }
   .dash-teaser-cta .arrow{ transition:transform .25s ease; }
   .dash-teaser:hover .dash-teaser-cta .arrow{ transform:translateX(4px); }
+  .dash-teaser.renare-teaser{
+    padding:30px 34px; border:1.5px solid rgba(90,169,255,0.45); border-radius:10px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(90,169,255,0.14), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(90,169,255,0.08), transparent 55%),
+      var(--oil-2);
+    box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(90,169,255,0.08), 0 0 26px rgba(90,169,255,0.14);
+    animation:renarePulseBorder 3.2s ease-in-out infinite;
+  }
+  @keyframes renarePulseBorder{
+    0%,100%{ box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(90,169,255,0.08), 0 0 20px rgba(90,169,255,0.12); }
+    50%{ box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(90,169,255,0.18), 0 0 34px rgba(90,169,255,0.30); }
+  }
+  .dash-teaser.renare-teaser::before{
+    height:3px; opacity:1; background-size:200% 100%;
+    background-image:linear-gradient(90deg, transparent, #7cc0ff, #5aa9ff, #7cc0ff, transparent);
+    animation:renareSweep 3.2s linear infinite;
+  }
+  @keyframes renareSweep{
+    0%{ background-position:200% 0; }
+    100%{ background-position:-200% 0; }
+  }
+  .dash-teaser.renare-teaser:hover{
+    border-color:#7cc0ff; transform:translateY(-4px) scale(1.01);
+    box-shadow:0 14px 34px rgba(0,0,0,0.45), 0 0 0 1px rgba(90,169,255,0.3), 0 0 42px rgba(90,169,255,0.32);
+  }
+  .dash-teaser.renare-teaser .dash-teaser-badge{
+    position:absolute; top:14px; right:16px;
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:700; letter-spacing:.14em;
+    color:#0c1420; background:#7cc0ff; padding:4px 9px; border-radius:20px;
+    box-shadow:0 0 12px rgba(124,192,255,0.5);
+  }
+  .dash-teaser.renare-teaser .dash-teaser-icon{
+    width:56px; height:56px;
+    background:rgba(90,169,255,0.14); border:1px solid rgba(90,169,255,0.4); color:#7cc0ff;
+    animation:renareIconPulse 3.2s ease-in-out infinite;
+  }
+  .dash-teaser.renare-teaser .dash-teaser-icon svg{ width:25px; height:25px; }
+  @keyframes renareIconPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(90,169,255,0.35); }
+    50%{ box-shadow:0 0 0 7px rgba(90,169,255,0); }
+  }
+  .dash-teaser.renare-teaser .dash-teaser-eyebrow{ color:#7cc0ff; }
+  .dash-teaser.renare-teaser .dash-teaser-text h3{ font-size:18.5px; }
+  .dash-teaser.renare-teaser .dash-teaser-cta{
+    color:#0c1420; background:#7cc0ff; font-weight:700; padding:10px 16px; border-radius:6px;
+    box-shadow:0 0 16px rgba(124,192,255,0.35); transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .dash-teaser.renare-teaser:hover .dash-teaser-cta{
+    box-shadow:0 0 24px rgba(124,192,255,0.55); transform:translateX(2px);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .dash-teaser.renare-teaser, .dash-teaser.renare-teaser::before, .dash-teaser.renare-teaser .dash-teaser-icon{
+      animation:none;
+    }
+  }
   @media (max-width:640px){
     .dash-teaser{ flex-direction:column; text-align:center; padding:24px 20px; }
     .dash-teaser-cta{ margin-top:4px; }
+    .dash-teaser.renare-teaser{ padding-top:46px; }
+    .dash-teaser.renare-teaser .dash-teaser-badge{ top:12px; right:50%; transform:translateX(50%); }
   }
 
   .hero-ctas-section{ padding:clamp(8px,1.5vw,16px) 6vw clamp(20px,3vw,32px); }
@@ -844,17 +902,18 @@
 </section>
 
 <section class="dash-teaser-section">
-  <a class="dash-teaser" href="emisiones.html">
+  <a class="dash-teaser renare-teaser" href="renare.html">
+    <span class="dash-teaser-badge" data-i18n="renareBadge">GOV PROTOTYPE</span>
     <div class="dash-teaser-icon">
-      <svg viewBox="0 0 24 24"><path d="M4 19h16M7 19V9m5 10V5m5 14v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/><path d="M9 12.2l2.2 2.2L15.5 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
     </div>
     <div class="dash-teaser-text">
-      <span class="dash-teaser-eyebrow" data-i18n="dashEyebrow">// LIVE DATA</span>
-      <h3 data-i18n="dashH3">CO₂ Emissions Dashboard</h3>
-      <p data-i18n="dashP">Interactive map of Vaca Muerta well sites, real emissions vs. trees needed to offset them, and a 5-year outlook. Sourced and cross-checked.</p>
+      <span class="dash-teaser-eyebrow" data-i18n="renareEyebrow">// PROTOTYPE FOR THE STATE</span>
+      <h3 data-i18n="renareH3">RENARE Demo — On-chain Carbon Registry</h3>
+      <p data-i18n="renareP">The PumpTree team built this prototype platform for RENARE, Argentina's national carbon-credit registry proposed in bill S-808/26. What you see here is a live demo of the prototype we're proposing to the Argentine State.</p>
     </div>
     <div class="dash-teaser-cta">
-      <span data-i18n="dashCta">Open dashboard</span> <span class="arrow">→</span>
+      <span data-i18n="renareCta">Open RENARE demo</span> <span class="arrow">→</span>
     </div>
   </a>
 </section>
@@ -897,10 +956,6 @@
     <div class="rm-item"><div class="rm-phase" data-i18n="rm5phase">FASE 05</div><div><h4 data-i18n="rm5h">Agua de riego</h4><p data-i18n="rm5p">We tackle the irrigation water problem: wastewater reuse, with a model ready to replicate.</p></div></div>
     <div class="rm-item"><div class="rm-phase" data-i18n="rm6phase">FASE 06</div><div><h4 data-i18n="rm6h">Compliance corporativo</h4><p data-i18n="rm6p">PumpTree as an environmental compliance service for operators, under Decreto 792/2026.</p></div></div>
   </div>
-  <div class="audit-cta" style="margin-top:32px;">
-    <a href="renare.html" class="btn-primary" data-i18n="renareCtaBtn">Ver demo: RENARE on-chain</a>
-  </div>
-  <div class="audit-note" data-i18n="renareCtaNote">Nuestro prototipo de registro de carbono para el Senado, corriendo en vivo en Solana.</div>
 </section>
 
 <section id="chart">
@@ -1164,10 +1219,11 @@
     heroEyebrow: {es:'// INICIATIVA DE FORESTACIÓN MASIVA EN VACA MUERTA, ARGENTINA', en:'// MASSIVE REFORESTATION INITIATIVE IN VACA MUERTA, ARGENTINA'},
     heroH1: {es:'Primer token <span class="flare">verde</span> en <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, de impacto ambiental', en:'The first <span class="flare">green</span> token on <img class="pumpfun-pill" src="pumpfun-pill-logo.png" alt="">Pump.fun, for environmental impact'},
     heroSub: {es:'Vaca Muerta es el yacimiento más grande de Argentina —segunda reserva mundial de gas no convencional y cuarta de petróleo— y representa más del 70% de la producción del país. Ese crecimiento hoy requiere mitigación. PumpTree propone reforestar la zona con árboles nativos, plantados por la comunidad y verificados por satélite. Los fees financian el trabajo; cada parcela, un NFT dinámico que crece con ella.', en:"Vaca Muerta is Argentina's largest field — the world's second-largest unconventional gas reserve and fourth-largest oil reserve — accounting for over 70% of the country's production. That growth now needs mitigation. PumpTree proposes reforesting the area with native trees, planted by the community and verified by satellite. Fees fund the work; every parcel becomes a dynamic NFT that grows with it."},
-    dashEyebrow: {es:'// DATA EN VIVO', en:'// LIVE DATA'},
-    dashH3: {es:'Dashboard de emisiones CO₂', en:'CO₂ Emissions Dashboard'},
-    dashP: {es:'Mapa interactivo de los pozos de Vaca Muerta, emisiones reales vs. árboles necesarios para compensarlas, y una proyección a 5 años. Con fuentes verificadas.', en:'Interactive map of Vaca Muerta well sites, real emissions vs. trees needed to offset them, and a 5-year outlook. Sourced and cross-checked.'},
-    dashCta: {es:'Abrir dashboard', en:'Open dashboard'},
+    renareBadge: {es:'PROTOTIPO ESTATAL', en:'GOV PROTOTYPE'},
+    renareEyebrow: {es:'// PROTOTIPO PARA EL ESTADO', en:'// PROTOTYPE FOR THE STATE'},
+    renareH3: {es:'Demo RENARE — Registro de carbono on-chain', en:'RENARE Demo — On-chain Carbon Registry'},
+    renareP: {es:'El equipo de PumpTree desarrolló este prototipo de plataforma para el RENARE, el registro nacional de reducción de emisiones propuesto en el proyecto de ley S-808/26 de Argentina. Lo que ves acá es una demo del prototipo que proponemos al Estado argentino.', en:"The PumpTree team built this prototype platform for RENARE, Argentina's national carbon-credit registry proposed in bill S-808/26. What you see here is a live demo of the prototype we're proposing to the Argentine State."},
+    renareCta: {es:'Abrir demo RENARE', en:'Open RENARE demo'},
     partnersEyebrow: {es:'// CRECIENDO JUNTOS', en:'// GROWING TOGETHER'},
     partnersH2: {es:'Socios y comunidades', en:'Partners &amp; communities'},
     partnerSlot: {es:'Sumate como socio', en:'Join as a partner'},
@@ -1176,8 +1232,6 @@
     liveSub: {es:'Balance de la wallet pública de tesorería del proyecto, leído directo de la blockchain de Solana.', en:"Balance of the project's public treasury wallet, read directly from the Solana blockchain."},
     liveExplorerLink: {es:'Ver en Solscan ↗', en:'View on Solscan ↗'},
     auditCtaBtn: {es:'Auditoría', en:'Audit'},
-    renareCtaBtn: {es:'Ver demo: RENARE on-chain', en:'View demo: RENARE on-chain'},
-    renareCtaNote: {es:'Nuestro prototipo de registro de carbono para el Senado, corriendo en vivo en Solana.', en:'Our carbon registry prototype for the Senate, running live on Solana.'},
     horizonLabel: {es:'POZO PETROLERO → ÁRBOL NATIVO', en:'OIL WELL → NATIVE TREE'},
     caLabel: {es:'CONTRACT ADDRESS (SOLANA)', en:'CONTRACT ADDRESS (SOLANA)'},
     caAddr: {es:'G6mtAWv19A8JryddE98D7MHGkKvmGnA5GJsmTtoDpump', en:'G6mtAWv19A8JryddE98D7MHGkKvmGnA5GJsmTtoDpump'},
